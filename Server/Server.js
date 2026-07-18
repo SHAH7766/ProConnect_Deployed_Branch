@@ -25,7 +25,8 @@ const allowedOrigins = [
     'http://127.0.0.1:5173',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-    process.env.CLIENT_URL,
+    'https://proconnect123.vercel.app',
+    ...(process.env.CLIENT_URL || '').split(','),
     process.env.RAILWAY_STATIC_URL,
 ].map((origin) => origin?.trim()).filter(Boolean)
 
