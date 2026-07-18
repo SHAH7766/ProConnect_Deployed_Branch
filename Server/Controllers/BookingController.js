@@ -81,7 +81,7 @@ const calculateLocationAdjustedCharges = (baseCharges, distance) => {
 };
 
 const buildProviderReviewSummary = async (providerId) => {
-    const reviews = await Review.find({ providerId })
+    const reviews = await Review.find({ providerId, rating: { $gte: 3 } })
         .populate('customerId', 'name')
         .sort({ createdAt: -1 })
         .limit(5)
@@ -391,6 +391,11 @@ export const SearchProviders = async (req, res) => {
         if (minCompletionRate) {
             result = result.filter((item) => item.completionRate !== null && item.completionRate >= Number(minCompletionRate));
         }
+
+        result.sort((a, b) => {
+            if (b.rating !== a.rating) return b.rating - a.rating;
+            return b.ratingCount - a.ratingCount;
+        });
 
         return res.status(200).send(result);
     } catch (error) {
