@@ -51,10 +51,10 @@ const Navigation = () => {
             </Nav>
           )}
           <Nav className="ms-auto align-items-center gap-3 mt-3 mt-lg-0">
-            <button className="btn btn-link text-dark p-0 border-0 me-2 theme-toggle-btn" onClick={toggleTheme}>
+            <button className="btn btn-link p-0 border-0 me-2 theme-toggle-btn" onClick={toggleTheme}>
               {isDarkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
             </button>
-            <button className="btn btn-link text-dark p-0 border-0 me-2 theme-toggle-btn">
+            <button className="btn btn-link p-0 border-0 me-2 theme-toggle-btn">
               <FiSearch size={20} />
             </button>
             {isLoggedIn ? (

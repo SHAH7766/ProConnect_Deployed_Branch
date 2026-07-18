@@ -88,6 +88,62 @@ a {
   background: rgba(37, 99, 235, 0.08);
 }
 
+/* Navbar hamburger toggle */
+.navbar-custom .navbar-toggler {
+  border: none;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 4px 8px;
+}
+
+.navbar-custom .navbar-toggler:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.navbar-custom .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(30,41,59,0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+[data-theme='dark'] .navbar-custom .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(241,245,249,0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Theme toggle & icon buttons */
+.theme-toggle-btn {
+  color: var(--text-main) !important;
+  transition: color 0.2s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle-btn:hover {
+  color: var(--primary-color) !important;
+  transform: scale(1.1);
+}
+
+/* Mobile navbar adjustments */
+@media (max-width: 991px) {
+  .navbar-custom .navbar-collapse {
+    padding: 16px 0 8px;
+  }
+
+  .navbar-custom .navbar-collapse .ms-auto {
+    justify-content: flex-start;
+    padding-left: 8px;
+    margin-top: 8px !important;
+  }
+
+  .navbar-custom .navbar-collapse .mx-auto {
+    margin: 0 !important;
+  }
+
+  .navbar-custom .navbar-collapse .mx-auto .nav-link {
+    padding: 8px 12px !important;
+  }
+}
+
 /* Buttons */
 .btn-primary-custom {
   background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
@@ -2842,6 +2898,10 @@ a {
 [data-theme='dark'] .navbar-custom .nav-link,
 [data-theme='dark'] .theme-toggle-btn {
   color: var(--text-main) !important;
+}
+
+[data-theme='dark'] .navbar-custom .theme-toggle-btn:hover {
+  color: var(--primary-color) !important;
 }
 
 [data-theme='dark'] .navbar-custom .nav-link:hover {
