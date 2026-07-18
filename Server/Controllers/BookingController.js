@@ -94,13 +94,25 @@ const buildProviderReviewSummary = async (providerId) => {
         };
     }
 
-    const comments = reviews
-        .map((review) => review.comment?.trim())
-        .filter(Boolean);
     const average = reviews.reduce((total, review) => total + Number(review.rating || 0), 0) / reviews.length;
-    const reviewSummary = comments.length > 0
-        ? `Rated ${average.toFixed(1)}/5 by ${reviews.length} client${reviews.length === 1 ? "" : "s"}. Feedback includes: ${comments.slice(0, 2).join(", ")}.`
-        : `Rated ${average.toFixed(1)}/5 by ${reviews.length} client${reviews.length === 1 ? "" : "s"}.`;
+    const avgStr = average.toFixed(1);
+
+    // Build star visual
+    const fullStars = Math.floor(average);
+    const halfStar = average - fullStars >= 0.5;
+    const stars = '★'.repeat(fullStars) + (halfStar ? '½' : '') + '☆'.repeat(5 - fullStars - (halfStar ? 1 : 0));
+
+    // Pick short highlight phrases from top reviews
+    const highlights = reviews
+        .map((review) => review.comment?.trim())
+        .filter(Boolean)
+        .slice(0, 2);
+
+    const highlightText = highlights.length > 0
+        ? ` — "${highlights.join('", "')}"`
+        : '';
+
+    const reviewSummary = `⭐ **${avgStr}/5** (${reviews.length} review${reviews.length === 1 ? '' : 's'}) ${stars}${highlightText}`;
 
     return {
         reviewSummary,
