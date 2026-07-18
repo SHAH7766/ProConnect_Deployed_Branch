@@ -6,10 +6,6 @@ const resolveApiBaseUrl = () => {
     return DEFAULT_API_URL;
   }
 
-  if (configuredApiUrl.includes('proconnect-production-c80e.up.railway.app')) {
-    return DEFAULT_API_URL;
-  }
-
   return configuredApiUrl.replace(/\/$/, '');
 };
 

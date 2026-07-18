@@ -11,7 +11,6 @@ import provider from './Model/Provider.js'
 import { sendProviderActivationEmail } from './utils/ProviderActivationEmail.js'
 const app = express()
 Dbconnection()
-const LOCAL_HOST = '127.0.0.1'
 const isLoopbackOrigin = (origin) => {
     try {
         const { hostname } = new URL(origin)
@@ -26,8 +25,9 @@ const allowedOrigins = [
     'http://127.0.0.1:5173',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-    ...(process.env.CLIENT_URL || '').split(',')
-].map((origin) => origin.trim()).filter(Boolean).filter(isLoopbackOrigin)
+    process.env.CLIENT_URL,
+    process.env.RAILWAY_STATIC_URL,
+].map((origin) => origin?.trim()).filter(Boolean)
 
 const corsOptions = {
     origin: (origin, callback) => {
@@ -96,9 +96,9 @@ app.get("/api/diagnostics", (req, res) => {
 app.use("/api", router)
 app.use('/api', ComplaintsRouter) // New route for complaints management
 app.use('/api', BookingRouter)
-const PORT = process.env.PORT || 8080 // Default to 8080 if PORT is missing in .env
-app.listen(PORT, LOCAL_HOST, () => {
-    console.log(`Server is running at http://${LOCAL_HOST}:${PORT}`.bgBrightBlue)
+const PORT = process.env.PORT || 8080
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`.bgBrightBlue)
 })
 
 // Auto-Approve Providers Background Worker
