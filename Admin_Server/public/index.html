@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ProConnect Admin</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section id="loginView" class="login-layout">
+        <div class="brand-panel">
+          <p class="eyebrow">ProConnect</p>
+          <h1>Admin Control Panel</h1>
+          <p class="supporting">Manage platform accounts, provider approvals, and admin operations from a separate server.</p>
+        </div>
+
+        <form id="loginForm" class="login-form">
+          <div>
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required />
+          </div>
+          <div>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required />
+          </div>
+          <button type="submit" class="primary-button">
+            <span>Sign in</span>
+            <i data-lucide="log-in"></i>
+          </button>
+          <p id="loginMessage" class="message"></p>
+        </form>
+      </section>
+
+      <section id="dashboardView" class="dashboard-layout hidden">
+        <aside class="sidebar">
+          <div>
+            <p class="eyebrow">ProConnect</p>
+            <h2>Admin</h2>
+          </div>
+          <nav>
+            <button class="nav-item active" type="button">
+              <i data-lucide="users"></i>
+              <span>Accounts</span>
+            </button>
+            <button class="nav-item" type="button" data-view="bookings">
+              <i data-lucide="calendar"></i>
+              <span>Bookings</span>
+            </button>
+            <button class="nav-item" type="button" data-view="complaints">
+              <i data-lucide="alert-circle"></i>
+              <span>Complaints</span>
+            </button>
+          </nav>
+          <button id="logoutButton" class="ghost-button" type="button">
+            <i data-lucide="log-out"></i>
+            <span>Logout</span>
+          </button>
+        </aside>
+
+        <section class="workspace">
+          <header class="topbar">
+            <div>
+              <p id="adminName" class="eyebrow">Admin</p>
+              <h1>Account Management</h1>
+            </div>
+            <button id="refreshButton" class="icon-button" type="button" title="Refresh">
+              <i data-lucide="refresh-cw"></i>
+            </button>
+          </header>
+
+          <div id="bookingsHeader" class="bookings-header hidden">
+            <div class="bookings-left">
+              <a href="#" id="backToAccounts" class="back-link">← Back to Profile</a>
+              <h2>All Bookings</h2>
+            </div>
+            <div class="bookings-actions">
+              <span id="bookingsTotal" class="pill total">Total: 0</span>
+              <button id="deleteAllBookings" class="btn btn-danger">Delete All</button>
+            </div>
+          </div>
+
+          <div id="complaintsHeader" class="bookings-header hidden">
+            <div class="bookings-left">
+              <a href="#" id="backToAccountsFromComplaints" class="back-link">← Back to Profile</a>
+              <h2>All Complaints</h2>
+            </div>
+            <div class="bookings-actions">
+              <span id="complaintsTotal" class="pill total">Total: 0</span>
+              <button id="deleteAllComplaints" class="btn btn-danger">Delete All</button>
+            </div>
+          </div>
+
+          <section id="summaryGrid" class="summary-grid" aria-label="Platform summary"></section>
+
+          <section class="toolbar">
+            <div class="search-field">
+              <i data-lucide="search"></i>
+              <input id="searchInput" type="search" placeholder="Search name, email, phone" />
+            </div>
+            <div class="segmented-control" aria-label="Account filter">
+              <button class="segment active" type="button" data-filter="all">All</button>
+              <button class="segment" type="button" data-filter="users">Users</button>
+              <button class="segment" type="button" data-filter="providers">Providers</button>
+            </div>
+          </section>
+
+          <section class="table-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                  <th class="actions-header">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="accountsBody"></tbody>
+            </table>
+            <div id="emptyState" class="empty-state hidden">No accounts found.</div>
+          </section>
+        </section>
+      </section>
+
+      <div id="toast" class="toast hidden"></div>
+    </main>
+  </body>
+</html>

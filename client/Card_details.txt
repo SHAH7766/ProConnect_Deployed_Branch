@@ -1,0 +1,9 @@
+Card number: 4242 4242 4242 4242
+Expiry: 12/30
+CVC: 123
+Name: Test User
+Country: Pakistan
+Street: Lahore
+City: Lahore
+
+Dummy_Account_details=SBX-F0BEAA66FC8D

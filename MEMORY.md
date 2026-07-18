@@ -1,0 +1,1 @@
+- [Fix Home.jsx](memory/fix-home-jsx.md) — fix broken references, missing hooks, and syntax errors in Home.jsx

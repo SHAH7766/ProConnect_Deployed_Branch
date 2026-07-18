@@ -1,0 +1,20 @@
+{
+  "name": "proconnect-admin-server",
+  "version": "1.0.0",
+  "description": "Separate admin API and control panel for ProConnect.",
+  "main": "Server.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon Server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "colors": "^1.4.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.1.5",
+    "nodemon": "^3.1.11"
+  }
+}
