@@ -126,19 +126,26 @@ const getSafepayClient = () => {
 };
 
 const resolveClientUrl = (req) => {
-    // Always prioritize CLIENT_URL from environment
-    const configuredUrl = process.env.CLIENT_URL?.trim();
-    if (configuredUrl) {
-        return configuredUrl.replace(/\/$/, '');
+    // Parse CLIENT_URL which may be comma-separated (e.g. "http://localhost:5173,https://proconnect123.vercel.app")
+    const configuredUrls = (process.env.CLIENT_URL || '')
+        .split(',')
+        .map((url) => url.trim().replace(/\/$/, ''))
+        .filter(Boolean);
+
+    // Prefer a non-localhost URL from the configured list (production URL)
+    const productionUrl = configuredUrls.find((url) => !/localhost|127\.0\.0\.1|::1/.test(url));
+    if (productionUrl) {
+        return productionUrl;
     }
 
-    // Fallback to request origin only if no CLIENT_URL is configured
+    // If only localhost URLs are configured, try the request origin
     const origin = req.get('origin') || req.get('referer');
     if (origin) {
         return origin.replace(/\/$/, '');
     }
 
-    return 'http://localhost:5173';
+    // Fall back to first configured URL, or localhost as last resort
+    return configuredUrls[0] || 'http://localhost:5173';
 };
 
 const getSafepayTrackerToken = (response) => response?.data?.tracker?.token || response?.tracker?.token || response?.data?.token;
