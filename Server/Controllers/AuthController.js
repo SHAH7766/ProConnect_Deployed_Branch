@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken'
 import { resetpassword } from "../utils/ResetPassword.js"
 import Booking from "../Model/Booking.js"
 import { isProviderActive } from "../utils/ProviderActivation.js"
+import { EmailClient } from "../utils/Nodemailer.js"
 
 const isValidSandboxAccountNumber = (value = '') => /^[A-Za-z0-9 -]{6,34}$/.test(value);
 
