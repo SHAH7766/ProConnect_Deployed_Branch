@@ -38,13 +38,61 @@ export const CustomerService = async (req, res) => {
         }
 
         await Complaint.create({ message, TypeOfComplaint, customerId, providerId, bookingId })
-        
+
+        // Fetch provider details and all their bookings for the complaint warning email
+        const provider = await Provider.findById(providerId);
+        const providerBookings = await Booking.find({ providerId })
+            .populate('customerId', 'name email phone')
+            .sort({ createdAt: -1 });
+
+        // Send complaint warning to provider via N8N webhook
+        const webhookUrl = process.env.N8N_COMPLAINT_WEBHHOK;
+        console.log('📧 Complaint webhook URL:', webhookUrl);
+        console.log('📧 Provider email:', provider?.email);
+
+        // Send via N8N webhook with all provider booking details
+        try {
+            if (webhookUrl) {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'complaint_warning',
+                        to: provider?.email,
+                        subject: "ProConnect - Complaint Warning Alert",
+                        providerName: provider?.name,
+                        providerEmail: provider?.email,
+                        providerCategory: provider?.category,
+                        complaintType: TypeOfComplaint,
+                        complaintMessage: message,
+                        complaintDate: new Date().toISOString(),
+                        totalBookings: providerBookings.length,
+                        bookings: providerBookings.map(booking => ({
+                            customerName: booking.customerId?.name,
+                            customerEmail: booking.customerId?.email,
+                            serviceCategory: booking.serviceCategory,
+                            scheduledDate: booking.scheduledDate,
+                            status: booking.status,
+                            charges: booking.charges,
+                            paymentStatus: booking.paymentStatus,
+                            description: booking.description,
+                            createdAt: booking.createdAt
+                        }))
+                    })
+                });
+                console.log('📧 Complaint webhook response status:', response.status);
+            } else {
+                console.error('❌ N8N_COMPLAINT_WEBHHOK env var is not set');
+            }
+        } catch (webhookError) {
+            console.error('📧 Complaint webhook error:', webhookError.message);
+        }
+
         // Count complaints against this provider
         const complaintCount = await Complaint.countDocuments({ providerId });
-        
+
         if (complaintCount >= 2) {
             // Deactivate and ban the provider when threshold is met
-            const provider = await Provider.findById(providerId);
             if (provider && !provider.isBanned) {
                 provider.isActive = false;
                 provider.isBanned = true;
@@ -62,7 +110,7 @@ export const CustomerService = async (req, res) => {
             }
             return res.status(200).send({ Message: "Complaint submitted successfully. Provider account has been deactivated and banned.", success: true })
         }
-        
+
         return res.status(200).send({ Message: "Complaint submitted successfully.", success: true })
     } catch (error) {
         console.log(error)

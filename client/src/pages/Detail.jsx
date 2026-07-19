@@ -548,7 +548,14 @@ const Detail = () => {
       </Row>
 
       <ToastContainer position="bottom-end" className="p-3">
-        <Toast bg={toast.type} show={toast.show} onClose={() => setToast({ ...toast, show: false })} delay={3000} autohide>
+        <Toast
+          key={toast.message}
+          bg={toast.type}
+          show={toast.show}
+          onClose={() => setToast({ ...toast, show: false })}
+          delay={3000}
+          autohide
+        >
           <Toast.Body className="text-white">
             <FiCheckCircle className="me-2" />
             {toast.message}
