@@ -86,82 +86,83 @@ export const CustomerService = async (req, res) => {
         console.log('🚫 Complaint count for provider:', complaintCount, '| isBanned:', provider?.isBanned);
 
         if (complaintCount >= 2) {
-            // Deactivate and ban the provider when threshold is met
+            // Ban the provider if not already banned
             if (provider && !provider.isBanned) {
                 provider.isActive = false;
                 provider.isBanned = true;
                 provider.bannedAt = new Date();
                 provider.bannedReason = `Account banned due to multiple complaints. Latest: ${TypeOfComplaint}`;
                 await provider.save();
-
-                // Fetch all complaints against this provider for the block webhook
-                const allComplaints = await Complaint.find({ providerId })
-                    .populate('customerId', 'name email')
-                    .sort({ createdAt: -1 });
-
-                // Fetch the specific complained booking with customer details
-                const blockComplainedBooking = bookingId
-                    ? await Booking.findById(bookingId).populate('customerId', 'name email phone')
-                    : null;
-
-                // Send all provider details, bookings, and customer details to N8N block webhook
-                const blockWebhookUrl = 'https://n8n-production-1732d.up.railway.app/webhook-test/d8c426c9-5c76-4f25-b7f5-0c8f5c55d5a0';
-                console.log('🚫 Block account webhook URL:', blockWebhookUrl);
-
-                try {
-                    const blockPayload = {
-                        type: 'account_blocked',
-                        provider: {
-                            id: provider._id,
-                            name: provider.name,
-                            email: provider.email,
-                            category: provider.category,
-                            charges: provider.charges,
-                            rating: provider.ratingAverage,
-                            completionRate: provider.completionRate,
-                            bannedAt: provider.bannedAt,
-                            bannedReason: provider.bannedReason,
-                        },
-                        totalComplaints: complaintCount,
-                        complaints: allComplaints.map(c => ({
-                            complaintType: c.TypeOfComplaint,
-                            message: c.message,
-                            status: c.status,
-                            customerName: c.customerId?.name,
-                            customerEmail: c.customerId?.email,
-                            createdAt: c.createdAt
-                        })),
-                        booking: blockComplainedBooking ? {
-                            customerName: blockComplainedBooking.customerId?.name,
-                            customerEmail: blockComplainedBooking.customerId?.email,
-                            customerPhone: blockComplainedBooking.customerId?.phone,
-                            serviceCategory: blockComplainedBooking.serviceCategory,
-                            scheduledDate: blockComplainedBooking.scheduledDate,
-                            status: blockComplainedBooking.status,
-                            charges: blockComplainedBooking.charges,
-                            paymentStatus: blockComplainedBooking.paymentStatus,
-                            description: blockComplainedBooking.description,
-                        } : null
-                    };
-
-                    const response = await fetch(blockWebhookUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(blockPayload)
-                    });
-                    console.log('🚫 Block webhook response status:', response.status);
-                } catch (blockError) {
-                    console.error('🚫 Block webhook error:', blockError.message);
-                }
-
-                // Send an alert email to the provider via N8N
-                await sendN8nEmail('account_banned', {
-                    to: provider.email,
-                    subject: "ProConnect - Account Banned Alert",
-                    name: provider.name,
-                    reason: 'Multiple customer complaints',
-                });
             }
+
+            // Fetch all complaints against this provider for the block webhook
+            const allComplaints = await Complaint.find({ providerId })
+                .populate('customerId', 'name email')
+                .sort({ createdAt: -1 });
+
+            // Fetch the specific complained booking with customer details
+            const blockComplainedBooking = bookingId
+                ? await Booking.findById(bookingId).populate('customerId', 'name email phone')
+                : null;
+
+            // Send all provider details, bookings, and customer details to N8N block webhook
+            const blockWebhookUrl = 'https://n8n-production-1732d.up.railway.app/webhook-test/d8c426c9-5c76-4f25-b7f5-0c8f5c55d5a0';
+            console.log('🚫 Block account webhook URL:', blockWebhookUrl);
+
+            try {
+                const blockPayload = {
+                    type: 'account_blocked',
+                    provider: {
+                        id: provider._id,
+                        name: provider.name,
+                        email: provider.email,
+                        category: provider.category,
+                        charges: provider.charges,
+                        rating: provider.ratingAverage,
+                        completionRate: provider.completionRate,
+                        bannedAt: provider.bannedAt,
+                        bannedReason: provider.bannedReason,
+                    },
+                    totalComplaints: complaintCount,
+                    complaints: allComplaints.map(c => ({
+                        complaintType: c.TypeOfComplaint,
+                        message: c.message,
+                        status: c.status,
+                        customerName: c.customerId?.name,
+                        customerEmail: c.customerId?.email,
+                        createdAt: c.createdAt
+                    })),
+                    booking: blockComplainedBooking ? {
+                        customerName: blockComplainedBooking.customerId?.name,
+                        customerEmail: blockComplainedBooking.customerId?.email,
+                        customerPhone: blockComplainedBooking.customerId?.phone,
+                        serviceCategory: blockComplainedBooking.serviceCategory,
+                        scheduledDate: blockComplainedBooking.scheduledDate,
+                        status: blockComplainedBooking.status,
+                        charges: blockComplainedBooking.charges,
+                        paymentStatus: blockComplainedBooking.paymentStatus,
+                        description: blockComplainedBooking.description,
+                    } : null
+                };
+
+                const response = await fetch(blockWebhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(blockPayload)
+                });
+                console.log('🚫 Block webhook response status:', response.status);
+            } catch (blockError) {
+                console.error('🚫 Block webhook error:', blockError.message);
+            }
+
+            // Send an alert email to the provider via N8N
+            await sendN8nEmail('account_banned', {
+                to: provider.email,
+                subject: "ProConnect - Account Banned Alert",
+                name: provider.name,
+                reason: 'Multiple customer complaints',
+            });
+
             return res.status(200).send({ Message: "Complaint submitted successfully. Provider account has been deactivated and banned.", success: true })
         }
 
