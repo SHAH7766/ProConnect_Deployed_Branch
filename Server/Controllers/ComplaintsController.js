@@ -106,8 +106,8 @@ export const CustomerService = async (req, res) => {
                 : null;
 
             // Send all provider details, bookings, and customer details to N8N block webhook
-            const blockWebhookUrl = 'https://n8n-production-1732d.up.railway.app/webhook-test/d8c426c9-5c76-4f25-b7f5-0c8f5c55d5a0';
-            console.log('🚫 Block account webhook URL:', blockWebhookUrl);
+            const blockWebhookUrl = process.env.N8N_BLOCK_ACCOUNT;
+            console.log('🚫 Block account webhook URL:', blockWebhookUrl || 'UNDEFINED');
 
             try {
                 const blockPayload = {
