@@ -187,6 +187,34 @@ export const GetAllComplaints = async (req, res) => {
         return res.status(500).send({ Message: "Internal server error", success: false })
     }
 }
+export const UnbanProvider = async (req, res) => {
+    const { providerId } = req.params;
+    try {
+        if (!isAdmin(req)) {
+            return res.status(403).send({ Message: "Only admins can unban providers", success: false });
+        }
+
+        const provider = await Provider.findById(providerId);
+        if (!provider) {
+            return res.status(404).send({ Message: "Provider not found", success: false });
+        }
+
+        provider.isActive = true;
+        provider.isBanned = false;
+        provider.bannedAt = null;
+        provider.bannedReason = '';
+        await provider.save();
+
+        // Delete all complaints against this provider so they can start fresh
+        await Complaint.deleteMany({ providerId });
+
+        return res.status(200).send({ Message: `Provider ${provider.name} has been unbanned and complaints cleared`, success: true });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ Message: "Internal server error", success: false });
+    }
+}
+
 export const UpdateComplaintStatus = async (req, res) => {
     const { id } = req.params
     const { status, action } = req.body
