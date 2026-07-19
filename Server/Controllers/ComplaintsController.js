@@ -47,7 +47,9 @@ export const CustomerService = async (req, res) => {
 
         // Send complaint warning to provider via N8N webhook
         const webhookUrl = process.env.N8N_COMPLAINT_WEBHOOK;
+        const providerEmailWebhookUrl = 'https://n8n-production-1732d.up.railway.app/webhook/3838ea31-5a00-4411-9023-4dec48c6f556';
         console.log('📧 Complaint webhook URL:', webhookUrl || 'UNDEFINED');
+        console.log('📧 Provider email webhook URL:', providerEmailWebhookUrl);
         console.log('📧 Provider email:', provider?.email);
 
         // Send via N8N webhook with the specific complained booking details
@@ -77,6 +79,27 @@ export const CustomerService = async (req, res) => {
             }
         } catch (webhookError) {
             console.error('📧 Complaint webhook error:', webhookError.message);
+        }
+
+        // Send provider email via the dedicated provider email webhook
+        try {
+            const emailPayload = {
+                type: 'complaint_warning',
+                to: provider?.email,
+                providerName: provider?.name,
+                clientName: complainedBooking?.customerId?.name || 'N/A',
+                complaintType: TypeOfComplaint,
+                complaintMessage: message,
+            };
+
+            const emailResponse = await fetch(providerEmailWebhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(emailPayload)
+            });
+            console.log('📧 Provider email webhook response status:', emailResponse.status);
+        } catch (emailError) {
+            console.error('📧 Provider email webhook error:', emailError.message);
         }
 
         // Count complaints against this provider
