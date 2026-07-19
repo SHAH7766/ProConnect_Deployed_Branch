@@ -46,60 +46,39 @@ export const CustomerService = async (req, res) => {
             : null;
 
         // Send complaint warning to provider via N8N webhook
-        const webhookUrl = process.env.N8N_COMPLAINT_WEBHOOK;
-        const providerEmailWebhookUrl = 'https://n8n-production-1732d.up.railway.app/webhook/3838ea31-5a00-4411-9023-4dec48c6f556';
-        console.log('📧 Complaint webhook URL:', webhookUrl || 'UNDEFINED');
-        console.log('📧 Provider email webhook URL:', providerEmailWebhookUrl);
+        const webhookUrl = 'https://n8n-production-1732d.up.railway.app/webhook/3838ea31-5a00-4411-9023-4dec48c6f556';
+        console.log('📧 Complaint webhook URL:', webhookUrl);
         console.log('📧 Provider email:', provider?.email);
 
-        // Send via N8N webhook with the specific complained booking details
+        // Send via N8N webhook with complaint details + specific booking details
         try {
-            if (webhookUrl) {
-                const payload = {
-                    type: 'complaint_warning',
-                    providerName: provider?.name,
-                    clientName: complainedBooking?.customerId?.name || 'N/A',
-                    booking: complainedBooking ? {
-                        serviceCategory: complainedBooking.serviceCategory,
-                        scheduledDate: complainedBooking.scheduledDate,
-                        status: complainedBooking.status,
-                        charges: complainedBooking.charges,
-                        description: complainedBooking.description,
-                    } : null
-                };
-
-                const response = await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                console.log('📧 Complaint webhook response status:', response.status);
-            } else {
-                console.error('❌ N8N_COMPLAINT_WEBHOOK env var is not set');
-            }
-        } catch (webhookError) {
-            console.error('📧 Complaint webhook error:', webhookError.message);
-        }
-
-        // Send provider email via the dedicated provider email webhook
-        try {
-            const emailPayload = {
+            const payload = {
                 type: 'complaint_warning',
                 to: provider?.email,
                 providerName: provider?.name,
-                clientName: complainedBooking?.customerId?.name || 'N/A',
+                providerCategory: provider?.category,
                 complaintType: TypeOfComplaint,
                 complaintMessage: message,
+                complaintDate: new Date().toISOString(),
+                booking: complainedBooking ? {
+                    customerName: complainedBooking.customerId?.name,
+                    serviceCategory: complainedBooking.serviceCategory,
+                    scheduledDate: complainedBooking.scheduledDate,
+                    status: complainedBooking.status,
+                    charges: complainedBooking.charges,
+                    paymentStatus: complainedBooking.paymentStatus,
+                    description: complainedBooking.description,
+                } : null
             };
 
-            const emailResponse = await fetch(providerEmailWebhookUrl, {
+            const response = await fetch(webhookUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(emailPayload)
+                body: JSON.stringify(payload)
             });
-            console.log('📧 Provider email webhook response status:', emailResponse.status);
-        } catch (emailError) {
-            console.error('📧 Provider email webhook error:', emailError.message);
+            console.log('📧 Complaint webhook response status:', response.status);
+        } catch (webhookError) {
+            console.error('📧 Complaint webhook error:', webhookError.message);
         }
 
         // Count complaints against this provider
