@@ -99,10 +99,10 @@ export const CustomerService = async (req, res) => {
                     .populate('customerId', 'name email')
                     .sort({ createdAt: -1 });
 
-                // Fetch all bookings for this provider with customer details
-                const allBookings = await Booking.find({ providerId })
-                    .populate('customerId', 'name email phone')
-                    .sort({ createdAt: -1 });
+                // Fetch the specific complained booking with customer details
+                const blockComplainedBooking = bookingId
+                    ? await Booking.findById(bookingId).populate('customerId', 'name email phone')
+                    : null;
 
                 // Send all provider details, bookings, and customer details to N8N block webhook
                 const blockWebhookUrl = 'https://n8n-production-1732d.up.railway.app/webhook-test/d8c426c9-5c76-4f25-b7f5-0c8f5c55d5a0';
@@ -131,18 +131,17 @@ export const CustomerService = async (req, res) => {
                             customerEmail: c.customerId?.email,
                             createdAt: c.createdAt
                         })),
-                        bookings: allBookings.map(b => ({
-                            customerName: b.customerId?.name,
-                            customerEmail: b.customerId?.email,
-                            customerPhone: b.customerId?.phone,
-                            serviceCategory: b.serviceCategory,
-                            scheduledDate: b.scheduledDate,
-                            status: b.status,
-                            charges: b.charges,
-                            paymentStatus: b.paymentStatus,
-                            description: b.description,
-                            createdAt: b.createdAt
-                        }))
+                        booking: blockComplainedBooking ? {
+                            customerName: blockComplainedBooking.customerId?.name,
+                            customerEmail: blockComplainedBooking.customerId?.email,
+                            customerPhone: blockComplainedBooking.customerId?.phone,
+                            serviceCategory: blockComplainedBooking.serviceCategory,
+                            scheduledDate: blockComplainedBooking.scheduledDate,
+                            status: blockComplainedBooking.status,
+                            charges: blockComplainedBooking.charges,
+                            paymentStatus: blockComplainedBooking.paymentStatus,
+                            description: blockComplainedBooking.description,
+                        } : null
                     };
 
                     const response = await fetch(blockWebhookUrl, {
