@@ -47,8 +47,9 @@ export const CustomerService = async (req, res) => {
 
         // Send complaint warning to provider via N8N webhook
         const webhookUrl = process.env.N8N_COMPLAINT_WEBHHOK;
-        console.log('📧 Complaint webhook URL:', webhookUrl);
+        console.log('📧 Complaint webhook URL:', webhookUrl || 'UNDEFINED');
         console.log('📧 Provider email:', provider?.email);
+        console.log('📧 All N8N env vars:', Object.keys(process.env).filter(k => k.startsWith('N8N')));
 
         // Send via N8N webhook with the specific complained booking details
         try {
