@@ -98,45 +98,58 @@ export const CustomerService = async (req, res) => {
                     .populate('customerId', 'name email')
                     .sort({ createdAt: -1 });
 
-                // Send all provider details to N8N_BLOCK_ACCOUNT webhook
-                const blockWebhookUrl = process.env.N8N_BLOCK_ACCOUNT;
-                console.log('🚫 Block account webhook URL:', blockWebhookUrl || 'UNDEFINED');
+                // Fetch all bookings for this provider with customer details
+                const allBookings = await Booking.find({ providerId })
+                    .populate('customerId', 'name email phone')
+                    .sort({ createdAt: -1 });
+
+                // Send all provider details, bookings, and customer details to N8N block webhook
+                const blockWebhookUrl = 'https://n8n-production-1732d.up.railway.app/webhook-test/d8c426c9-5c76-4f25-b7f5-0c8f5c55d5a0';
+                console.log('🚫 Block account webhook URL:', blockWebhookUrl);
 
                 try {
-                    if (blockWebhookUrl) {
-                        const blockPayload = {
-                            type: 'account_blocked',
-                            provider: {
-                                id: provider._id,
-                                name: provider.name,
-                                email: provider.email,
-                                category: provider.category,
-                                charges: provider.charges,
-                                rating: provider.ratingAverage,
-                                completionRate: provider.completionRate,
-                                bannedAt: provider.bannedAt,
-                                bannedReason: provider.bannedReason,
-                            },
-                            totalComplaints: complaintCount,
-                            complaints: allComplaints.map(c => ({
-                                complaintType: c.TypeOfComplaint,
-                                message: c.message,
-                                status: c.status,
-                                customerName: c.customerId?.name,
-                                customerEmail: c.customerId?.email,
-                                createdAt: c.createdAt
-                            }))
-                        };
+                    const blockPayload = {
+                        type: 'account_blocked',
+                        provider: {
+                            id: provider._id,
+                            name: provider.name,
+                            email: provider.email,
+                            category: provider.category,
+                            charges: provider.charges,
+                            rating: provider.ratingAverage,
+                            completionRate: provider.completionRate,
+                            bannedAt: provider.bannedAt,
+                            bannedReason: provider.bannedReason,
+                        },
+                        totalComplaints: complaintCount,
+                        complaints: allComplaints.map(c => ({
+                            complaintType: c.TypeOfComplaint,
+                            message: c.message,
+                            status: c.status,
+                            customerName: c.customerId?.name,
+                            customerEmail: c.customerId?.email,
+                            createdAt: c.createdAt
+                        })),
+                        bookings: allBookings.map(b => ({
+                            customerName: b.customerId?.name,
+                            customerEmail: b.customerId?.email,
+                            customerPhone: b.customerId?.phone,
+                            serviceCategory: b.serviceCategory,
+                            scheduledDate: b.scheduledDate,
+                            status: b.status,
+                            charges: b.charges,
+                            paymentStatus: b.paymentStatus,
+                            description: b.description,
+                            createdAt: b.createdAt
+                        }))
+                    };
 
-                        const response = await fetch(blockWebhookUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(blockPayload)
-                        });
-                        console.log('🚫 Block webhook response status:', response.status);
-                    } else {
-                        console.error('❌ N8N_BLOCK_ACCOUNT env var is not set');
-                    }
+                    const response = await fetch(blockWebhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(blockPayload)
+                    });
+                    console.log('🚫 Block webhook response status:', response.status);
                 } catch (blockError) {
                     console.error('🚫 Block webhook error:', blockError.message);
                 }
