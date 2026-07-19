@@ -28,6 +28,17 @@ body {
   padding: 0;
 }
 
+/* Global theme transition */
+body, .navbar-custom, .footer-minimal, .hero-section-modern,
+.trust-section, .categories-section, .auth-page-wrapper,
+.glass-card, .trust-card, .provider-card, .booking-mobile-card,
+.dropdown-menu, .modal-content {
+  transition: background-color 0.35s ease,
+              color 0.35s ease,
+              border-color 0.25s ease,
+              box-shadow 0.3s ease;
+}
+
 ::selection {
   background: rgba(37, 99, 235, 0.18);
 }
@@ -47,9 +58,19 @@ a {
   backdrop-filter: blur(18px);
   border-bottom: none;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
-  transition: all 0.3s ease;
+  transition: padding 0.3s ease, background-color 0.35s ease, box-shadow 0.3s ease;
   display: flex !important;
   align-items: center !important;
+}
+
+.navbar-custom.navbar-scrolled {
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(24px);
+}
+
+[data-theme='dark'] .navbar-custom.navbar-scrolled {
+  background: rgba(15, 23, 42, 0.95) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .providers-page {
@@ -2838,6 +2859,56 @@ a {
 .hover-lift:hover {
   transform: translateY(-8px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* --- Skeleton Loading --- */
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.06) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+[data-theme='dark'] .skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.06) 75%);
+  background-size: 200% 100%;
+}
+
+/* --- Empty State Float Animation --- */
+@keyframes emptyStateFloat {
+  0%, 100% { transform: translateY(0); opacity: 0.6; }
+  50% { transform: translateY(-10px); opacity: 1; }
+}
+.empty-state-float {
+  animation: emptyStateFloat 3s ease-in-out infinite;
+}
+
+/* --- Back to Top Button --- */
+.back-to-top-btn {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+  z-index: 1000;
+  font-size: 1.2rem;
+}
+.back-to-top-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.4);
 }
 
 /* --- Dark Mode Styles --- */

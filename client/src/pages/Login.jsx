@@ -6,6 +6,15 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../config/api';
 
+const formContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } }
+};
+const formItem = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } }
+};
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -85,60 +94,82 @@ const Login = () => {
         </div>
 
         <Form onSubmit={handleSubmit} noValidate>
-          <div className="role-selector-container">
-            <div className={`role-card ${!isProvider ? 'active' : ''}`} onClick={() => setIsProvider(false)}>
-              <div className="role-card-icon-wrapper mx-auto">
-                <FiUser />
-              </div>
-              <h5 className="mb-0">Customer</h5>
-              {!isProvider && <FiCheckCircle className="role-check" />}
-            </div>
-            
-            <div className={`role-card ${isProvider ? 'active' : ''}`} onClick={() => setIsProvider(true)}>
-              <div className="role-card-icon-wrapper mx-auto">
-                <FiBriefcase />
-              </div>
-              <h5 className="mb-0">Provider</h5>
-              {isProvider && <FiCheckCircle className="role-check" />}
-            </div>
-          </div>
+          <motion.div variants={formContainer} initial="hidden" animate="visible">
+            <motion.div variants={formItem} className="role-selector-container">
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className={`role-card ${!isProvider ? 'active' : ''}`}
+                onClick={() => setIsProvider(false)}
+              >
+                <div className="role-card-icon-wrapper mx-auto">
+                  <FiUser />
+                </div>
+                <h5 className="mb-0">Customer</h5>
+                {!isProvider && <FiCheckCircle className="role-check" />}
+              </motion.div>
 
-          <div className="auth-input-group">
-            <FiMail className="auth-input-icon" />
-            <input 
-              type="email" 
-              placeholder="EMAIL ADDRESS" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              required 
-            />
-          </div>
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className={`role-card ${isProvider ? 'active' : ''}`}
+                onClick={() => setIsProvider(true)}
+              >
+                <div className="role-card-icon-wrapper mx-auto">
+                  <FiBriefcase />
+                </div>
+                <h5 className="mb-0">Provider</h5>
+                {isProvider && <FiCheckCircle className="role-check" />}
+              </motion.div>
+            </motion.div>
 
-          <div className="auth-input-group mb-2">
-            <FiLock className="auth-input-icon" />
-            <input 
-              type={showPassword ? "text" : "password"} 
-              placeholder="PASSWORD" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              required 
-            />
-            <button type="button" className="auth-password-toggle" onClick={() => setShowPassword(!showPassword)}>
-              {showPassword ? <FiEyeOff /> : <FiEye />}
-            </button>
-          </div>
+            <motion.div variants={formItem} className="auth-input-group">
+              <FiMail className="auth-input-icon" />
+              <input
+                type="email"
+                placeholder="EMAIL ADDRESS"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </motion.div>
 
-          <Link to="/forgotpassword" className="mb-4 d-block text-end fw-semibold text-primary" style={{ textDecoration: 'none', fontSize: '0.9rem' }}>
-            Forgot password?
-          </Link>
+            <motion.div variants={formItem} className="auth-input-group mb-2">
+              <FiLock className="auth-input-icon" />
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="PASSWORD"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button type="button" className="auth-password-toggle" onClick={() => setShowPassword(!showPassword)}>
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
+            </motion.div>
 
-          <button type="submit" className="auth-btn-primary" disabled={loading}>
-            {loading ? 'Signing In...' : 'Sign In'}
-          </button>
+            <motion.div variants={formItem}>
+              <Link to="/forgotpassword" className="mb-4 d-block text-end fw-semibold text-primary" style={{ textDecoration: 'none', fontSize: '0.9rem' }}>
+                Forgot password?
+              </Link>
+            </motion.div>
 
-          <div className="auth-bottom-link">
-            Don't have an account? <Link to="/register">Register</Link>
-          </div>
+            <motion.div variants={formItem}>
+              <motion.button
+                type="submit"
+                className="auth-btn-primary"
+                disabled={loading}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {loading ? 'Signing In...' : 'Sign In'}
+              </motion.button>
+            </motion.div>
+
+            <motion.div variants={formItem} className="auth-bottom-link">
+              Don't have an account? <Link to="/register">Register</Link>
+            </motion.div>
+          </motion.div>
         </Form>
       </motion.div>
 

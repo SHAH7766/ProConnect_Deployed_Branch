@@ -5,6 +5,7 @@ import { FiCpu, FiDollarSign, FiSearch, FiStar, FiTrendingUp, FiUserCheck } from
 import { useNavigate } from 'react-router-dom';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import { API_BASE_URL } from '../config/api';
+import { motion } from 'framer-motion';
 
 const formatCompletionRate = (completionRate) => (
   completionRate === null || completionRate === undefined ? 'N/A' : `${completionRate}%`
@@ -214,11 +215,17 @@ const Providers = () => {
         {error && <Alert variant="danger" className="text-center">{error}</Alert>}
 
         {!loading && (
-          <Row ref={listRef} className={`g-4 providers-grid scroll-animate ${listVisible ? 'is-visible' : ''}`}>
+          <div ref={listRef} className={`providers-grid scroll-animate ${listVisible ? 'is-visible' : ''}`}>
             {providers.length > 0 ? (
-              providers.map((provider, index) => (
+              <Row className="g-4">
+              {providers.map((provider, index) => (
                 <Col lg={4} md={6} key={provider._id}>
-                  <Card className="provider-card h-100 border-0 shadow-sm" style={{ animationDelay: `${0.08 * (index + 1)}s` }}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.06, ease: 'easeOut' }}
+                  >
+                  <Card className="provider-card h-100 border-0 shadow-sm">
                     <Card.Body className="text-center p-4">
                       {getRecommendationForProvider(provider._id) && (
                         <Badge bg="primary" className="mb-3 badge-pill">
@@ -258,18 +265,25 @@ const Providers = () => {
                       </button>
                     </Card.Footer>
                   </Card>
+                  </motion.div>
                 </Col>
-              ))
+              ))}
+              </Row>
             ) : hasSearched ? (
-              <div className="text-center py-5 text-muted empty-state-card shadow-sm animate-up delay-2">
-                <FiSearch size={34} className="mb-3" />
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-center py-5 text-muted empty-state-card shadow-sm col-12"
+              >
+                <FiSearch size={34} className="mb-3 empty-state-float" />
                 <h4 className="fw-bold">No active {selectedCategories.length > 0 ? selectedCategories.join(' or ') : 'matching'} providers available.</h4>
                 <p className="mb-0">
                   AI detected that your issue needs {selectedCategories.length > 0 ? selectedCategories.join(' and/or ') : 'a matching provider'}, but no admin-approved providers are active in this category right now.
                 </p>
-              </div>
+              </motion.div>
             ) : null}
-          </Row>
+          </div>
         )}
       </Container>
     </div>

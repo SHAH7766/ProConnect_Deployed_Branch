@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { Alert, Badge, Button, Col, Container, Form, Row, Spinner, Toast, ToastContainer } from 'react-bootstrap'
+import { motion, AnimatePresence } from 'framer-motion'
 import { FiCalendar, FiCheckCircle, FiDollarSign, FiEdit3, FiImage, FiMapPin, FiNavigation, FiSend, FiStar, FiTrendingUp, FiX, FiBriefcase } from 'react-icons/fi'
 import { API_BASE_URL } from '../config/api'
+import { StaggerContainer, StaggerItem } from '../components/StaggerContainer'
 
 const getTodayDateValue = () => {
   const today = new Date();
@@ -302,9 +304,10 @@ const Detail = () => {
                 {provider.reviewSummary || (provider.ratingCount > 0 ? `${provider.ratingCount} customer review${provider.ratingCount === 1 ? '' : 's'} recorded.` : 'No customer reviews yet.')}
               </p>
               {provider.recentReviews?.length > 0 && (
-                <div className="reviews-list">
+                <StaggerContainer className="reviews-list">
                   {provider.recentReviews.map((review, index) => (
-                    <div className="review-card" key={review._id} style={{ animationDelay: `${index * 0.15}s` }}>
+                    <StaggerItem key={review._id}>
+                    <div className="review-card">
                       <div className="review-header">
                         <strong>{review.customerName}</strong>
                         <div className="rating-stars">
@@ -316,8 +319,9 @@ const Detail = () => {
                       </div>
                       {review.comment && <p className="text-muted small mb-0 review-comment">{review.comment}</p>}
                     </div>
+                    </StaggerItem>
                   ))}
-                </div>
+                </StaggerContainer>
               )}
             </div>
           </div>
@@ -496,28 +500,36 @@ const Detail = () => {
                     <span className="upload-hint">PNG, JPG up to 5MB</span>
                   </label>
                 </div>
+                <AnimatePresence>
                 {form.problemPhoto && (
-                  <div className="photo-preview-enhanced">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, height: 0 }}
+                    animate={{ opacity: 1, scale: 1, height: 'auto' }}
+                    exit={{ opacity: 0, scale: 0.95, height: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    className="photo-preview-enhanced"
+                  >
                     <div className="preview-header">
                       <span className="preview-label">
                         <FiImage /> Preview
                       </span>
-                      <Button 
-                        size="sm" 
-                        variant="outline-danger" 
+                      <Button
+                        size="sm"
+                        variant="outline-danger"
                         onClick={() => setForm({ ...form, problemPhoto: '', problemPhotoFile: null })}
                         className="remove-photo-btn"
                       >
                         <FiX /> Remove
                       </Button>
                     </div>
-                    <img 
-                      src={form.problemPhoto} 
-                      alt="Problem preview" 
-                      className="preview-image" 
+                    <img
+                      src={form.problemPhoto}
+                      alt="Problem preview"
+                      className="preview-image"
                     />
-                  </div>
+                  </motion.div>
                 )}
+                </AnimatePresence>
               </Form.Group>
               
               <div className="booking-info-banner">

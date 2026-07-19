@@ -10,9 +10,16 @@ const Navigation = () => {
   const canViewComplaints = userRole === 'user';
 
   const [isDarkMode, setIsDarkMode] = useState(
-    localStorage.getItem('theme') === 'dark' || 
+    localStorage.getItem('theme') === 'dark' ||
     (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)
   );
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -33,7 +40,7 @@ const Navigation = () => {
   };
 
   return (
-    <Navbar expand="lg" className="navbar-custom fixed-top py-3">
+    <Navbar expand="lg" className={`navbar-custom fixed-top ${scrolled ? 'navbar-scrolled py-2' : 'py-3'}`}>
       <Container>
         <Navbar.Brand as={Link} to="/" className="d-flex align-items-center gap-2 footer-logo">
           <img src="/logo.jpg" alt="ProConnect Logo" style={{ height: '36px', width: '36px', borderRadius: '50%' }} />

@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect } from 'react';
 import { Navigate, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
+import PageTransition from './components/PageTransition';
+import BackToTop from './components/BackToTop';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -65,32 +68,37 @@ function App() {
     <>
       <Navigation />
       <div style={{ paddingTop: '76px' }}> {/* Offset for fixed navbar */}
-        <Routes>
-          <Route path="/" element={<HomeRoute />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/how-it-works" element={<HowItWorks />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/providers" element={<Providers />} />
-          <Route path='/profile' element={<Profile />} />
-          <Route path='/edit-profile' element={<EditProfile />} />
-          <Route path='/my-bookings' element={<MyBookings />} />
-          <Route path='/payment-success' element={<PaymentResult />} />
-          <Route path='/payment-cancel' element={<PaymentResult cancelled />} />
-          <Route path='/detail/:id' element={<Detail />} />
-          <Route path='/complain' element={
-            <RoleRoute allowedRoles={['user']}>
-              <Complain />
-            </RoleRoute>
-          } />
-          <Route path='/forgotpassword' element={<ForgotPasswordForm />} />
-          <Route path='/resetpassword' element={<ResetPassword />} />
-          <Route path='/resetpassword/:token' element={<ResetPassword />} />
-        </Routes>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<PageTransition><HomeRoute /></PageTransition>} />
+            <Route path="/services" element={<PageTransition><Services /></PageTransition>} />
+            <Route path="/how-it-works" element={<PageTransition><HowItWorks /></PageTransition>} />
+            <Route path="/about" element={<PageTransition><About /></PageTransition>} />
+            <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
+            <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+            <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
+            <Route path="/providers" element={<PageTransition><Providers /></PageTransition>} />
+            <Route path='/profile' element={<PageTransition><Profile /></PageTransition>} />
+            <Route path='/edit-profile' element={<PageTransition><EditProfile /></PageTransition>} />
+            <Route path='/my-bookings' element={<PageTransition><MyBookings /></PageTransition>} />
+            <Route path='/payment-success' element={<PageTransition><PaymentResult /></PageTransition>} />
+            <Route path='/payment-cancel' element={<PageTransition><PaymentResult cancelled /></PageTransition>} />
+            <Route path='/detail/:id' element={<PageTransition><Detail /></PageTransition>} />
+            <Route path='/complain' element={
+              <PageTransition>
+                <RoleRoute allowedRoles={['user']}>
+                  <Complain />
+                </RoleRoute>
+              </PageTransition>
+            } />
+            <Route path='/forgotpassword' element={<PageTransition><ForgotPasswordForm /></PageTransition>} />
+            <Route path='/resetpassword' element={<PageTransition><ResetPassword /></PageTransition>} />
+            <Route path='/resetpassword/:token' element={<PageTransition><ResetPassword /></PageTransition>} />
+          </Routes>
+        </AnimatePresence>
       </div>
       <Footer />
+      <BackToTop />
     </>
   );
 }

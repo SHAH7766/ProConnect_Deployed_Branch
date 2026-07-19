@@ -100,86 +100,106 @@ const Register = () => {
         </div>
 
         <Form onSubmit={handleSubmit}>
-          <div className="role-selector-container">
-            <div className={`role-card ${!isProvider ? 'active' : ''}`} onClick={() => setIsProvider(false)}>
-              <div className="role-card-icon-wrapper mx-auto">
-                <FiUser />
-              </div>
-              <h5 className="mb-0">Customer</h5>
-              {!isProvider && <FiCheckCircle className="role-check" />}
-            </div>
-            
-            <div className={`role-card ${isProvider ? 'active' : ''}`} onClick={() => setIsProvider(true)}>
-              <div className="role-card-icon-wrapper mx-auto">
-                <FiBriefcase />
-              </div>
-              <h5 className="mb-0">Provider</h5>
-              {isProvider && <FiCheckCircle className="role-check" />}
-            </div>
-          </div>
+          <motion.div variants={formContainer} initial="hidden" animate="visible">
+            <motion.div variants={formItem} className="role-selector-container">
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className={`role-card ${!isProvider ? 'active' : ''}`}
+                onClick={() => setIsProvider(false)}
+              >
+                <div className="role-card-icon-wrapper mx-auto">
+                  <FiUser />
+                </div>
+                <h5 className="mb-0">Customer</h5>
+                {!isProvider && <FiCheckCircle className="role-check" />}
+              </motion.div>
 
-          <div className="auth-input-group">
-            <FiUser className="auth-input-icon" />
-            <input type="text" name="name" placeholder="FULL NAME" onChange={handleChange} required />
-          </div>
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className={`role-card ${isProvider ? 'active' : ''}`}
+                onClick={() => setIsProvider(true)}
+              >
+                <div className="role-card-icon-wrapper mx-auto">
+                  <FiBriefcase />
+                </div>
+                <h5 className="mb-0">Provider</h5>
+                {isProvider && <FiCheckCircle className="role-check" />}
+              </motion.div>
+            </motion.div>
 
-          <div className="auth-input-group">
-            <FiMail className="auth-input-icon" />
-            <input type="email" name="email" placeholder="EMAIL ADDRESS" onChange={handleChange} required />
-          </div>
+            <motion.div variants={formItem} className="auth-input-group">
+              <FiUser className="auth-input-icon" />
+              <input type="text" name="name" placeholder="FULL NAME" onChange={handleChange} required />
+            </motion.div>
 
-          <div className="auth-input-group">
-            <FiUser className="auth-input-icon" />
-            <input type="text" name="cnic" placeholder="CNIC NUMBER" value={formData.cnic} onChange={handleChange} required />
-          </div>
+            <motion.div variants={formItem} className="auth-input-group">
+              <FiMail className="auth-input-icon" />
+              <input type="email" name="email" placeholder="EMAIL ADDRESS" onChange={handleChange} required />
+            </motion.div>
 
-          <div className="auth-input-group">
-            <FiLock className="auth-input-icon" />
-            <input 
-              type={showPassword ? "text" : "password"} 
-              name="password" 
-              placeholder="PASSWORD" 
-              onChange={handleChange} 
-              required 
-            />
-            <button type="button" className="auth-password-toggle" onClick={() => setShowPassword(!showPassword)}>
-              {showPassword ? <FiEyeOff /> : <FiEye />}
-            </button>
-          </div>
+            <motion.div variants={formItem} className="auth-input-group">
+              <FiUser className="auth-input-icon" />
+              <input type="text" name="cnic" placeholder="CNIC NUMBER" value={formData.cnic} onChange={handleChange} required />
+            </motion.div>
 
-          <div className="password-criteria">
-            <div className={`criterion ${passwordCriteria.length ? 'valid' : ''}`}>
-              {passwordCriteria.length ? <FiCheckCircle /> : '○'} 8+ Characters
-            </div>
-            <div className={`criterion ${passwordCriteria.upper ? 'valid' : ''}`}>
-              {passwordCriteria.upper ? <FiCheckCircle /> : '○'} Uppercase
-            </div>
-            <div className={`criterion ${passwordCriteria.number ? 'valid' : ''}`}>
-              {passwordCriteria.number ? <FiCheckCircle /> : '○'} Number
-            </div>
-            <div className={`criterion ${passwordCriteria.special ? 'valid' : ''}`}>
-              {passwordCriteria.special ? <FiCheckCircle /> : '○'} Special Char
-            </div>
-          </div>
+            <motion.div variants={formItem} className="auth-input-group">
+              <FiLock className="auth-input-icon" />
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="PASSWORD"
+                onChange={handleChange}
+                required
+              />
+              <button type="button" className="auth-password-toggle" onClick={() => setShowPassword(!showPassword)}>
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
+            </motion.div>
 
-          <div className="auth-input-group mb-4">
-            <FiLock className="auth-input-icon" />
-            <input 
-              type="password" 
-              name="confirmPassword" 
-              placeholder="CONFIRM PASSWORD" 
-              onChange={handleChange} 
-              required 
-            />
-          </div>
+            <motion.div variants={formItem} className="password-criteria">
+              {['length', 'upper', 'number', 'special'].map((key, i) => (
+                <motion.div
+                  key={key}
+                  className={`criterion ${passwordCriteria[key] ? 'valid' : ''}`}
+                  animate={passwordCriteria[key] ? { scale: [1, 1.2, 1], color: '#10b981' } : {}}
+                  transition={{ duration: 0.3 }}
+                >
+                  {passwordCriteria[key] ? <FiCheckCircle /> : '○'} {
+                    { length: '8+ Characters', upper: 'Uppercase', number: 'Number', special: 'Special Char' }[key]
+                  }
+                </motion.div>
+              ))}
+            </motion.div>
 
-          <button type="submit" className="auth-btn-primary" disabled={loading}>
-            {loading ? 'Creating Account...' : 'Create Account'}
-          </button>
+            <motion.div variants={formItem} className="auth-input-group mb-4">
+              <FiLock className="auth-input-icon" />
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="CONFIRM PASSWORD"
+                onChange={handleChange}
+                required
+              />
+            </motion.div>
 
-          <div className="auth-bottom-link">
-            Already have an account? <Link to="/login">Log In</Link>
-          </div>
+            <motion.div variants={formItem}>
+              <motion.button
+                type="submit"
+                className="auth-btn-primary"
+                disabled={loading}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {loading ? 'Creating Account...' : 'Create Account'}
+              </motion.button>
+            </motion.div>
+
+            <motion.div variants={formItem} className="auth-bottom-link">
+              Already have an account? <Link to="/login">Log In</Link>
+            </motion.div>
+          </motion.div>
         </Form>
       </motion.div>
 
