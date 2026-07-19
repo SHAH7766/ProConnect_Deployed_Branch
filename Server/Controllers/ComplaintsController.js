@@ -39,46 +39,50 @@ export const CustomerService = async (req, res) => {
 
         await Complaint.create({ message, TypeOfComplaint, customerId, providerId, bookingId })
 
-        // Fetch provider details and all their bookings for the complaint warning email
+        // Fetch provider details and the specific complained booking
         const provider = await Provider.findById(providerId);
-        const providerBookings = await Booking.find({ providerId })
-            .populate('customerId', 'name email phone')
-            .sort({ createdAt: -1 });
+        const complainedBooking = bookingId
+            ? await Booking.findById(bookingId).populate('customerId', 'name email phone')
+            : null;
 
         // Send complaint warning to provider via N8N webhook
         const webhookUrl = process.env.N8N_COMPLAINT_WEBHHOK;
         console.log('📧 Complaint webhook URL:', webhookUrl);
         console.log('📧 Provider email:', provider?.email);
 
-        // Send via N8N webhook with all provider booking details
+        // Send via N8N webhook with the specific complained booking details
         try {
             if (webhookUrl) {
+                const payload = {
+                    type: 'complaint_warning',
+                    to: provider?.email,
+                    subject: "ProConnect - Complaint Warning Alert",
+                    providerName: provider?.name,
+                    providerEmail: provider?.email,
+                    providerCategory: provider?.category,
+                    complaintType: TypeOfComplaint,
+                    complaintMessage: message,
+                    complaintDate: new Date().toISOString(),
+                };
+
+                if (complainedBooking) {
+                    payload.booking = {
+                        customerName: complainedBooking.customerId?.name,
+                        customerEmail: complainedBooking.customerId?.email,
+                        serviceCategory: complainedBooking.serviceCategory,
+                        scheduledDate: complainedBooking.scheduledDate,
+                        status: complainedBooking.status,
+                        charges: complainedBooking.charges,
+                        paymentStatus: complainedBooking.paymentStatus,
+                        description: complainedBooking.description,
+                        createdAt: complainedBooking.createdAt
+                    };
+                }
+
                 const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type: 'complaint_warning',
-                        to: provider?.email,
-                        subject: "ProConnect - Complaint Warning Alert",
-                        providerName: provider?.name,
-                        providerEmail: provider?.email,
-                        providerCategory: provider?.category,
-                        complaintType: TypeOfComplaint,
-                        complaintMessage: message,
-                        complaintDate: new Date().toISOString(),
-                        totalBookings: providerBookings.length,
-                        bookings: providerBookings.map(booking => ({
-                            customerName: booking.customerId?.name,
-                            customerEmail: booking.customerId?.email,
-                            serviceCategory: booking.serviceCategory,
-                            scheduledDate: booking.scheduledDate,
-                            status: booking.status,
-                            charges: booking.charges,
-                            paymentStatus: booking.paymentStatus,
-                            description: booking.description,
-                            createdAt: booking.createdAt
-                        }))
-                    })
+                    body: JSON.stringify(payload)
                 });
                 console.log('📧 Complaint webhook response status:', response.status);
             } else {
