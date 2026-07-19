@@ -46,39 +46,25 @@ export const CustomerService = async (req, res) => {
             : null;
 
         // Send complaint warning to provider via N8N webhook
-        const webhookUrl = process.env.N8N_COMPLAINT_WEBHHOK;
+        const webhookUrl = process.env.N8N_COMPLAINT_WEBHOOK;
         console.log('📧 Complaint webhook URL:', webhookUrl || 'UNDEFINED');
         console.log('📧 Provider email:', provider?.email);
-        console.log('📧 All N8N env vars:', Object.keys(process.env).filter(k => k.startsWith('N8N')));
 
         // Send via N8N webhook with the specific complained booking details
         try {
             if (webhookUrl) {
                 const payload = {
                     type: 'complaint_warning',
-                    to: provider?.email,
-                    subject: "ProConnect - Complaint Warning Alert",
                     providerName: provider?.name,
-                    providerEmail: provider?.email,
-                    providerCategory: provider?.category,
-                    complaintType: TypeOfComplaint,
-                    complaintMessage: message,
-                    complaintDate: new Date().toISOString(),
-                };
-
-                if (complainedBooking) {
-                    payload.booking = {
-                        customerName: complainedBooking.customerId?.name,
-                        customerEmail: complainedBooking.customerId?.email,
+                    clientName: complainedBooking?.customerId?.name || 'N/A',
+                    booking: complainedBooking ? {
                         serviceCategory: complainedBooking.serviceCategory,
                         scheduledDate: complainedBooking.scheduledDate,
                         status: complainedBooking.status,
                         charges: complainedBooking.charges,
-                        paymentStatus: complainedBooking.paymentStatus,
                         description: complainedBooking.description,
-                        createdAt: complainedBooking.createdAt
-                    };
-                }
+                    } : null
+                };
 
                 const response = await fetch(webhookUrl, {
                     method: 'POST',
@@ -87,7 +73,7 @@ export const CustomerService = async (req, res) => {
                 });
                 console.log('📧 Complaint webhook response status:', response.status);
             } else {
-                console.error('❌ N8N_COMPLAINT_WEBHHOK env var is not set');
+                console.error('❌ N8N_COMPLAINT_WEBHOOK env var is not set');
             }
         } catch (webhookError) {
             console.error('📧 Complaint webhook error:', webhookError.message);
