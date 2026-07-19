@@ -157,21 +157,22 @@ export const loginProvider = async (req, res) => {
                 success: false
             })
         if (!isProviderActive(existProvider)) {
-            const fiveMinutes = 5 * 60 * 1000;
+            const twoMinutes = 2 * 60 * 1000;
             const timeDiff = Date.now() - new Date(existProvider.createdAt).getTime();
 
-            if (timeDiff < fiveMinutes) {
-                const remaining = Math.ceil((fiveMinutes - timeDiff) / 60000);
+            if (timeDiff < twoMinutes) {
+                const remaining = Math.ceil((twoMinutes - timeDiff) / 60000);
                 return res.status(403).send({
                     Message: `Account will be activated automatically after ${remaining} minute(s).`,
                     success: false
                 });
             }
 
-            return res.status(403).send({
-                Message: "Your provider account is not active yet. Please wait for admin approval.",
-                success: false
-            });
+            // Auto-activate after 2 minutes
+            existProvider.isActive = true;
+            existProvider.sandboxBankAccount = existProvider.sandboxBankAccount || {};
+            existProvider.sandboxBankAccount.isSetupComplete = true;
+            await existProvider.save();
         }
         let LoggedProvider = {
             id: existProvider._id,
