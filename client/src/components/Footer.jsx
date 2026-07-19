@@ -36,8 +36,8 @@ const Footer = () => {
           </div>
 
           <div className="footer-social">
-            <button className="btn btn-link text-muted p-0" style={{ transition: 'color 0.2s, transform 0.2s' }}><FiGlobe size={20} /></button>
-            <button className="btn btn-link text-muted p-0" style={{ transition: 'color 0.2s, transform 0.2s' }}><FiAtSign size={20} /></button>
+            <a href="https://proconnectadmin.up.railway.app" target="_blank" rel="noopener noreferrer" className="btn btn-link text-muted p-0" title="Admin Portal" style={{ transition: 'color 0.2s, transform 0.2s' }}><FiGlobe size={20} /></a>
+            <a href="mailto:support@proconnect.com" className="btn btn-link text-muted p-0" title="Contact Us" style={{ transition: 'color 0.2s, transform 0.2s' }}><FiAtSign size={20} /></a>
           </div>
         </div>
       </Container>
