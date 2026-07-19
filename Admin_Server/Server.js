@@ -103,9 +103,9 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(publicDir, 'index.html'));
 });
 
-const PORT = process.env.ADMIN_PORT || 8081;
-app.listen(PORT, LOCAL_HOST, () => {
-  console.log(`Admin server is running at http://${LOCAL_HOST}:${PORT}`.bgBlue);
+const PORT = process.env.PORT || process.env.ADMIN_PORT || 8081;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Admin server is running on port ${PORT}`.bgBlue);
 });
 
 void connectDatabase();
