@@ -83,6 +83,7 @@ export const CustomerService = async (req, res) => {
 
         // Count complaints against this provider
         const complaintCount = await Complaint.countDocuments({ providerId });
+        console.log('🚫 Complaint count for provider:', complaintCount, '| isBanned:', provider?.isBanned);
 
         if (complaintCount >= 2) {
             // Deactivate and ban the provider when threshold is met
