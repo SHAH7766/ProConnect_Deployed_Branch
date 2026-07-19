@@ -6,9 +6,9 @@ import Booking from '../Model/Booking.js';
 import Complaint from '../Model/Complaint.js';
 import Message from '../Model/Message.js';
 import Review from '../Model/Review.js';
-import { ComparePassword } from '../../Server/Auth/Hash.js';
-import { sendN8nEmail } from '../../Server/utils/N8nMailer.js';
-import { sendProviderActivationEmail } from '../../Server/utils/ProviderActivationEmail.js';
+import { ComparePassword } from '../Auth/Hash.js';
+import { sendN8nEmail } from '../utils/N8nMailer.js';
+import { sendProviderActivationEmail } from '../utils/ProviderActivationEmail.js';
 
 const accountFields = '-password -sandboxBankAccount.transactions';
 
