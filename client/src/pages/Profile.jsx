@@ -17,11 +17,10 @@ const Profile = () => {
     const navigate = useNavigate();
     const baseURL = API_BASE_URL;
 
-    const isProfileIncomplete = false;
-    // const isProfileIncomplete = data && (
-    //     (data.role === 'provider' && (!data.category || !data.experience || !data.charges || !data.sandboxBankAccount?.accountNumber)) ||
-    //     (data.role === 'user' && !data.cnic)
-    // );
+    const isProfileIncomplete = data && (
+        (data.role === 'provider' && (!data.category || !data.experience || !data.charges || !data.sandboxBankAccount?.accountNumber)) ||
+        (data.role === 'user' && !data.cnic)
+    );
 
 
     useEffect(() => {
