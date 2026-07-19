@@ -105,6 +105,54 @@ export const CustomerService = async (req, res) => {
                 provider.bannedReason = `Account banned due to multiple complaints. Latest: ${TypeOfComplaint}`;
                 await provider.save();
 
+                // Fetch all complaints against this provider for the block webhook
+                const allComplaints = await Complaint.find({ providerId })
+                    .populate('customerId', 'name email')
+                    .sort({ createdAt: -1 });
+
+                // Send all provider details to N8N_BLOCK_ACCOUNT webhook
+                const blockWebhookUrl = process.env.N8N_BLOCK_ACCOUNT;
+                console.log('🚫 Block account webhook URL:', blockWebhookUrl || 'UNDEFINED');
+
+                try {
+                    if (blockWebhookUrl) {
+                        const blockPayload = {
+                            type: 'account_blocked',
+                            provider: {
+                                id: provider._id,
+                                name: provider.name,
+                                email: provider.email,
+                                category: provider.category,
+                                charges: provider.charges,
+                                rating: provider.ratingAverage,
+                                completionRate: provider.completionRate,
+                                bannedAt: provider.bannedAt,
+                                bannedReason: provider.bannedReason,
+                            },
+                            totalComplaints: complaintCount,
+                            complaints: allComplaints.map(c => ({
+                                complaintType: c.TypeOfComplaint,
+                                message: c.message,
+                                status: c.status,
+                                customerName: c.customerId?.name,
+                                customerEmail: c.customerId?.email,
+                                createdAt: c.createdAt
+                            }))
+                        };
+
+                        const response = await fetch(blockWebhookUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(blockPayload)
+                        });
+                        console.log('🚫 Block webhook response status:', response.status);
+                    } else {
+                        console.error('❌ N8N_BLOCK_ACCOUNT env var is not set');
+                    }
+                } catch (blockError) {
+                    console.error('🚫 Block webhook error:', blockError.message);
+                }
+
                 // Send an alert email to the provider via N8N
                 await sendN8nEmail('account_banned', {
                     to: provider.email,
