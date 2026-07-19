@@ -35,7 +35,7 @@ const allowedOrigins = [
   'http://127.0.0.1:5173',
   ...(process.env.ADMIN_CLIENT_URL || '').split(','),
   ...(process.env.CLIENT_URL || '').split(',')
-].map((origin) => origin.trim()).filter(Boolean).filter(isLoopbackOrigin);
+].map((origin) => origin.trim()).filter(Boolean);
 
 const corsOptions = {
   origin: (origin, callback) => {
