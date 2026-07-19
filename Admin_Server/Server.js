@@ -1,5 +1,5 @@
 import express from 'express';
-import cors from 'cors';
+import cors from 'cors'; // kept for reference
 import colors from 'colors';
 import mongoose from 'mongoose';
 import { config } from 'dotenv';
@@ -37,17 +37,30 @@ const allowedOrigins = [
   ...(process.env.CLIENT_URL || '').split(',')
 ].map((origin) => origin.trim()).filter(Boolean);
 
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
+const isAllowedOrigin = (origin, req) => {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  // Allow same-origin: admin panel served from this same server
+  try {
+    const originHost = new URL(origin).hostname;
+    const requestHost = req?.headers?.host?.split(':')[0];
+    if (requestHost && originHost === requestHost) return true;
+  } catch {}
+  return false;
+};
 
-    return callback(new Error(`Origin ${origin} is not allowed by admin CORS`));
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization']
+const corsMiddleware = (req, res, next) => {
+  const origin = req.headers.origin;
+  if (isAllowedOrigin(origin, req)) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
 };
 
 const connectDatabase = async () => {
@@ -79,7 +92,7 @@ const requireDatabaseConnection = (req, res, next) => {
 
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
-app.use(cors(corsOptions));
+app.use(corsMiddleware);
 
 app.get('/api/admin/health', (req, res) => {
   const states = {
