@@ -122,6 +122,7 @@ const Profile = () => {
                         <div className="border-top pt-3">
                             <p className="mb-2"><strong>Account type:</strong> {data?.role || 'customer'}</p>
                             {data?.phone && <p className="mb-2"><strong>Phone:</strong> {data.phone}</p>}
+                            {data?.cnic && <p className="mb-2"><strong>CNIC:</strong> {data.cnic}</p>}
                             <p className="mb-2"><strong>Total requests:</strong> {activityStats.totalRequests}</p>
                             <p className="mb-0"><strong>Member since:</strong> {memberSince}</p>
                         </div>

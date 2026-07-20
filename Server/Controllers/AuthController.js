@@ -381,7 +381,7 @@ export const ResetPassword = async (req, res) => {
 
 export const UpdateProfileContact = async (req, res) => {
     try {
-        const { email = '', phone = '', sandboxBankAccountNumber = '' } = req.body;
+        const { email = '', phone = '', cnic = '', sandboxBankAccountNumber = '' } = req.body;
         const { id, role } = req.user;
         const Model = role === 'provider' ? provider : user;
         const account = await Model.findById(id);
@@ -413,6 +413,13 @@ export const UpdateProfileContact = async (req, res) => {
 
         account.email = trimmedEmail;
         account.phone = trimmedPhone;
+
+        if (role !== 'provider') {
+            const trimmedCnic = cnic.trim();
+            if (trimmedCnic) {
+                account.cnic = trimmedCnic;
+            }
+        }
 
         if (role === 'provider') {
             const trimmedSandboxAccountNumber = sandboxBankAccountNumber.trim();

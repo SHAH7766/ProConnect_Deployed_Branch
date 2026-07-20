@@ -17,6 +17,7 @@ const EditProfile = () => {
     const [contactForm, setContactForm] = useState({
         email: '',
         phone: '',
+        cnic: '',
         sandboxBankAccountNumber: '',
         category: '',
         experience: '',
@@ -45,6 +46,7 @@ const EditProfile = () => {
             setContactForm({
                 email: data.profile?.email || '',
                 phone: data.profile?.phone || '',
+                cnic: data.profile?.cnic || '',
                 sandboxBankAccountNumber: data.profile?.sandboxBankAccount?.accountNumber || getGeneratedSandboxAccountNumber(data.profile?._id),
                 category: data.profile?.category || '',
                 experience: data.profile?.experience || '',
@@ -78,6 +80,7 @@ const EditProfile = () => {
                 ...current,
                 email: data.profile?.email || contactForm.email,
                 phone: data.profile?.phone || contactForm.phone,
+                cnic: data.profile?.cnic || contactForm.cnic,
                 sandboxBankAccount: data.profile?.sandboxBankAccount || current?.sandboxBankAccount,
                 category: data.profile?.category || contactForm.category,
                 experience: data.profile?.experience || contactForm.experience,
@@ -182,23 +185,33 @@ const EditProfile = () => {
                             <Form onSubmit={handleContactSubmit}>
                                 <div className="auth-input-group mb-3">
                                     <FiMail className="auth-input-icon" />
-                                    <input 
-                                        name="email" 
-                                        type="email" 
-                                        placeholder="EMAIL ADDRESS" 
-                                        value={contactForm.email} 
-                                        onChange={handleContactChange} 
-                                        required 
+                                    <input
+                                        name="email"
+                                        type="email"
+                                        placeholder="EMAIL ADDRESS"
+                                        value={contactForm.email}
+                                        onChange={handleContactChange}
+                                        required
+                                    />
+                                </div>
+                                <div className="auth-input-group mb-3">
+                                    <FiPhone className="auth-input-icon" />
+                                    <input
+                                        name="phone"
+                                        type="tel"
+                                        placeholder="PHONE NUMBER"
+                                        value={contactForm.phone}
+                                        onChange={handleContactChange}
                                     />
                                 </div>
                                 <div className="auth-input-group mb-4">
-                                    <FiPhone className="auth-input-icon" />
-                                    <input 
-                                        name="phone" 
-                                        type="tel" 
-                                        placeholder="PHONE NUMBER" 
-                                        value={contactForm.phone} 
-                                        onChange={handleContactChange} 
+                                    <FiUser className="auth-input-icon" />
+                                    <input
+                                        name="cnic"
+                                        type="text"
+                                        placeholder="CNIC NUMBER"
+                                        value={contactForm.cnic}
+                                        onChange={handleContactChange}
                                     />
                                 </div>
 
