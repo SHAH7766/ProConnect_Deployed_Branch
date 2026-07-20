@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Badge, ListGroup, Spinner } from 'react-bootstrap';
 import { FiBell, FiCheck, FiX, FiClock, FiCheckCircle, FiAlertCircle, FiDollarSign, FiMessageCircle, FiCalendar } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
@@ -72,43 +72,39 @@ const NotificationBell = () => {
   const isLoggedIn = !!localStorage.getItem('token');
   const toastTimer = useRef(null);
 
-  const fetchNotifications = useCallback(async () => {
-    if (!isLoggedIn) return;
-    try {
-      const token = localStorage.getItem('token');
-      const { data } = await axios.get(`${API_BASE_URL}/api/notifications`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (data.success) {
-        setNotifications(data.notifications || []);
-        const prevCount = prevCountRef.current;
-        const newCount = data.unreadCount || 0;
-        setUnreadCount(newCount);
-
-        // Show toast for new notifications that arrived since last poll
-        if (prevCount > 0 && newCount > prevCount && data.notifications?.length > 0) {
-          const latest = data.notifications[0];
-          if (!latest.isRead) {
-            playBeep();
-            setToastNotif(latest);
-            if (toastTimer.current) clearTimeout(toastTimer.current);
-            toastTimer.current = setTimeout(() => setToastNotif(null), 5000);
-          }
-        }
-        prevCountRef.current = newCount;
-      }
-    } catch {
-      // silently ignore
-    }
-  }, [isLoggedIn]);
-
-  // Poll for new notifications
   useEffect(() => {
     if (!isLoggedIn) return;
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 15000);
+
+    const doFetch = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const { data } = await axios.get(`${API_BASE_URL}/api/notifications`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (data.success) {
+          setNotifications(data.notifications || []);
+          const prevCount = prevCountRef.current;
+          const newCount = data.unreadCount || 0;
+          setUnreadCount(newCount);
+
+          if (prevCount > 0 && newCount > prevCount && data.notifications?.length > 0) {
+            const latest = data.notifications[0];
+            if (!latest.isRead) {
+              playBeep();
+              setToastNotif(latest);
+              if (toastTimer.current) clearTimeout(toastTimer.current);
+              toastTimer.current = setTimeout(() => setToastNotif(null), 5000);
+            }
+          }
+          prevCountRef.current = newCount;
+        }
+      } catch { /* ignore */ }
+    };
+
+    doFetch();
+    const interval = setInterval(doFetch, 12000);
     return () => clearInterval(interval);
-  }, [isLoggedIn, fetchNotifications]);
+  }, [isLoggedIn]);
 
   // Close dropdown on outside click
   useEffect(() => {
