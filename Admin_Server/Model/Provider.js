@@ -11,7 +11,16 @@ const providerSchema = new mongoose.Schema({
   },
   cnic: {
     type: String,
-    default: ''
+    default: '',
+    unique: true,
+    sparse: true,
+    validate: {
+      validator: function(v) {
+        if (!v) return true;
+        return /^\d{13}$/.test(v);
+      },
+      message: 'CNIC must be exactly 13 digits'
+    }
   },
   phone: {
     type: String,

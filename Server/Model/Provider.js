@@ -11,6 +11,8 @@ const provider=new mongoose.Schema({
     cnic:{
         type:String,
         default:'',
+        unique: true,
+        sparse: true,
         validate: {
             validator: function(v) {
                 if (!v) return true;
