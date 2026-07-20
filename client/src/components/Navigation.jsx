@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar, Nav, Container, NavDropdown, Badge } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiAlertTriangle, FiBriefcase, FiCalendar, FiEdit, FiLogOut, FiUser, FiSearch, FiMoon, FiSun } from 'react-icons/fi';
+import { FiAlertTriangle, FiBriefcase, FiCalendar, FiEdit, FiLogOut, FiUser, FiMoon, FiSun } from 'react-icons/fi';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 
@@ -91,9 +91,6 @@ const Navigation = () => {
           <Nav className="ms-auto align-items-center gap-3 mt-3 mt-lg-0">
             <button className="btn btn-link p-0 border-0 me-2 theme-toggle-btn" onClick={toggleTheme}>
               {isDarkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
-            </button>
-            <button className="btn btn-link p-0 border-0 me-2 theme-toggle-btn">
-              <FiSearch size={20} />
             </button>
             {isLoggedIn ? (
               <NavDropdown
