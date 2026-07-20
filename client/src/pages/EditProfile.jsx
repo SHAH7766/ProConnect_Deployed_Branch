@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Badge, Container, Row, Col, Toast, ToastContainer, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiCreditCard, FiMail, FiLock, FiPhone, FiRefreshCw, FiBriefcase } from 'react-icons/fi';
+import { FiArrowLeft, FiCreditCard, FiMail, FiLock, FiPhone, FiRefreshCw, FiBriefcase, FiUser } from 'react-icons/fi';
 import { API_BASE_URL } from '../config/api';
 
 const getGeneratedSandboxAccountNumber = (providerId = '') => providerId
