@@ -2921,7 +2921,8 @@ a {
 .notification-dropdown {
   position: absolute;
   top: calc(100% + 10px);
-  right: -8px;
+  left: 50%;
+  transform: translateX(-50%);
   width: 360px;
   max-height: 480px;
   background: white;
@@ -2938,9 +2939,9 @@ a {
   .notification-dropdown {
     position: fixed;
     top: 70px;
-    right: 12px;
-    left: 12px;
-    width: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 24px);
     max-height: 70vh;
   }
 }
