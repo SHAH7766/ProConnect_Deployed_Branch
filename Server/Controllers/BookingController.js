@@ -1133,19 +1133,40 @@ export const ConfirmSafepayPayment = async (req, res) => {
 
 export const DeleteBookingRequest = async (req, res) => {
     try {
-        const booking = await Booking.findById(req.params.id);
+        const booking = await Booking.findById(req.params.id).populate('customerId', 'name').populate('providerId', 'name');
 
         if (!booking) {
             return res.status(404).send({ Message: "Booking request not found", success: false });
         }
 
-        const isCustomerOwner = booking.customerId.toString() === req.user.id;
-        if (!isCustomerOwner && req.user.role !== 'admin') {
+        const isCustomerOwner = booking.customerId?._id.toString() === req.user.id;
+        const isProviderOwner = booking.providerId?._id.toString() === req.user.id;
+        if (!isCustomerOwner && !isProviderOwner && req.user.role !== 'admin') {
             return res.status(403).send({ Message: "You can delete only your own booking request", success: false });
         }
 
         if (!['Requested', 'Negotiation'].includes(booking.status) && req.user.role !== 'admin') {
             return res.status(400).send({ Message: "Accepted bookings cannot be deleted. Please contact the provider or cancel the service.", success: false });
+        }
+
+        const customer = booking.customerId;
+        const provider = booking.providerId;
+
+        // Notify the other party
+        if (isCustomerOwner && provider) {
+            createNotification({
+                recipientId: provider._id, recipientRole: 'provider',
+                type: 'booking_cancelled', title: 'Booking Cancelled',
+                message: `${customer?.name || 'The customer'} has cancelled the ${booking.serviceCategory} booking request.`,
+                bookingId: booking._id
+            });
+        } else if (isProviderOwner && customer) {
+            createNotification({
+                recipientId: customer._id, recipientRole: 'user',
+                type: 'booking_cancelled', title: 'Booking Cancelled',
+                message: `${provider?.name || 'The provider'} has cancelled the ${booking.serviceCategory} booking request.`,
+                bookingId: booking._id
+            });
         }
 
         await Message.deleteMany({ bookingId: booking._id });
