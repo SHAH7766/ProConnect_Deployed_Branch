@@ -39,7 +39,9 @@ const Register = () => {
   });
   const [passwordChecking, setPasswordChecking] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState({ checking: false, available: null, message: '' });
+  const [cnicStatus, setCnicStatus] = useState({ checking: false, available: null, message: '' });
   const debounceTimer = useRef(null);
+  const cnicCheckTimer = useRef(null);
   const passwordCheckTimer = useRef(null);
 
   const baseURL = API_BASE_URL;
@@ -89,6 +91,29 @@ const Register = () => {
     }
   }, []);
 
+  const checkCnic = useCallback(async (cnicValue) => {
+    const digits = cnicValue.replace(/[^0-9]/g, '');
+    if (digits.length < 13) {
+      setCnicStatus({ checking: false, available: null, message: '' });
+      return;
+    }
+    if (digits.length !== 13) {
+      setCnicStatus({ checking: false, available: false, message: 'CNIC must be exactly 13 digits' });
+      return;
+    }
+    setCnicStatus(prev => ({ ...prev, checking: true }));
+    try {
+      const { data } = await axios.post(`${API_BASE_URL}/api/check-cnic`, { cnic: cnicValue });
+      setCnicStatus({
+        checking: false,
+        available: data.available,
+        message: data.available ? '' : 'CNIC already exists'
+      });
+    } catch {
+      setCnicStatus({ checking: false, available: null, message: '' });
+    }
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -99,6 +124,16 @@ const Register = () => {
       if (value.trim().length >= 3) {
         setUsernameStatus(prev => ({ ...prev, checking: true }));
         debounceTimer.current = setTimeout(() => checkUsername(value), 500);
+      }
+    }
+
+    if (name === 'cnic') {
+      setCnicStatus({ checking: false, available: null, message: '' });
+      if (cnicCheckTimer.current) clearTimeout(cnicCheckTimer.current);
+      const digits = value.replace(/[^0-9]/g, '');
+      if (digits.length >= 13) {
+        setCnicStatus(prev => ({ ...prev, checking: true }));
+        cnicCheckTimer.current = setTimeout(() => checkCnic(value), 500);
       }
     }
   };
@@ -228,7 +263,25 @@ const Register = () => {
               <motion.div variants={formItem} className="auth-input-group">
                 <FiUser className="auth-input-icon" />
                 <input type="text" name="cnic" placeholder="CNIC (e.g. 37405-1234567-1)" maxLength={15} value={formData.cnic} onChange={handleChange} required />
+                {cnicStatus.checking && (
+                  <span className="auth-input-suffix"><span className="auth-spinner-sm" /></span>
+                )}
+                {!cnicStatus.checking && cnicStatus.available === true && formData.cnic.replace(/[^0-9]/g, '').length >= 13 && (
+                  <span className="auth-input-suffix text-success"><FiCheck size={18} /></span>
+                )}
+                {!cnicStatus.checking && cnicStatus.available === false && (
+                  <span className="auth-input-suffix text-danger"><FiX size={18} /></span>
+                )}
               </motion.div>
+            )}
+            {cnicStatus.message && (
+              <motion.small
+                className={`d-block mt-n2 mb-2 small text-danger`}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                {cnicStatus.message}
+              </motion.small>
             )}
 
             <motion.div variants={formItem} className="auth-input-group">

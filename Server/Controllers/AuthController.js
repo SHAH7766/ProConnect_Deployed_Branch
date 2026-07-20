@@ -372,6 +372,26 @@ export const ActivateProvider = async (req, res) => {
         return res.status(500).send({ Message: error.message || "Internal server error", success: false })
     }
 }
+export const CheckCnic = async (req, res) => {
+    try {
+        const { cnic } = req.body
+        const sanitized = cnic ? String(cnic).replace(/[^0-9]/g, '') : ''
+        if (!sanitized) {
+            return res.send({ available: false, message: 'CNIC is required' })
+        }
+        if (sanitized.length !== 13) {
+            return res.send({ available: false, message: 'CNIC must be exactly 13 digits' })
+        }
+        const userConflict = await user.findOne({ cnic: sanitized }).select('_id')
+        const providerConflict = await provider.findOne({ cnic: sanitized }).select('_id')
+        const taken = !!(userConflict || providerConflict)
+        return res.send({ available: !taken, message: taken ? 'CNIC already exists' : 'CNIC available' })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send({ Message: "Internal server error", success: false })
+    }
+}
+
 export const CheckUsername = async (req, res) => {
     try {
         const { username } = req.body
