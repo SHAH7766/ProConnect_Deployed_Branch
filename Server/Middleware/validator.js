@@ -3,9 +3,10 @@ import jwt from 'jsonwebtoken'
 export const RegisterValidator = async (req, res, next) => {
     const regex =/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,}$/;
     try {
-        const { name, email, password, cnic } = req.body
+        const { username, name, email, password, cnic } = req.body
         const errors = []
-        if (!name)
+        const finalUsername = username || name
+        if (!finalUsername)
             errors.push("username is missing")
         if (!email)
             errors.push("email is missing")

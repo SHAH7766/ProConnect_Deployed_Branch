@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Container, Form, Button, Toast, ToastContainer, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { FiBriefcase, FiUser, FiMail, FiPhone, FiLock, FiEye, FiEyeOff, FiCheckCircle } from 'react-icons/fi';
+import { FiBriefcase, FiUser, FiMail, FiPhone, FiLock, FiEye, FiEyeOff, FiCheckCircle, FiCheck, FiX } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../config/api';
 
@@ -18,7 +18,7 @@ const formItem = {
 const Register = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    username: '',
     email: '',
     cnic: '',
     password: '',
@@ -37,6 +37,8 @@ const Register = () => {
     number: false,
     special: false
   });
+  const [usernameStatus, setUsernameStatus] = useState({ checking: false, available: null, message: '' });
+  const debounceTimer = useRef(null);
 
   const baseURL = API_BASE_URL;
   const navigate = useNavigate();
@@ -51,8 +53,41 @@ const Register = () => {
     });
   }, [formData.password]);
 
+  const checkUsername = useCallback(async (username) => {
+    const sanitized = username.toString().trim().toLowerCase();
+    if (sanitized.length < 3) {
+      setUsernameStatus({ checking: false, available: null, message: '' });
+      return;
+    }
+    if (!/^[a-z0-9._-]+$/.test(sanitized)) {
+      setUsernameStatus({ checking: false, available: false, message: 'Invalid characters. Use letters, numbers, dots, underscores or hyphens.' });
+      return;
+    }
+    setUsernameStatus(prev => ({ ...prev, checking: true }));
+    try {
+      const { data } = await axios.post(`${API_BASE_URL}/api/check-username`, { username: sanitized });
+      setUsernameStatus({
+        checking: false,
+        available: data.available,
+        message: data.available ? 'Username available' : 'Username already taken'
+      });
+    } catch {
+      setUsernameStatus({ checking: false, available: null, message: '' });
+    }
+  }, []);
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'username') {
+      setUsernameStatus({ checking: false, available: null, message: '' });
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      if (value.trim().length >= 3) {
+        setUsernameStatus(prev => ({ ...prev, checking: true }));
+        debounceTimer.current = setTimeout(() => checkUsername(value), 500);
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -81,7 +116,7 @@ const Register = () => {
     const payload = isProvider
       ? { ...formData, password: formData.password } // omits confirmPassword in a real app, but backend ignores extras
       : {
-        name: formData.name,
+        username: formData.username,
         email: formData.email,
         cnic: formData.cnic,
         password: formData.password,
@@ -148,8 +183,26 @@ const Register = () => {
 
             <motion.div variants={formItem} className="auth-input-group">
               <FiUser className="auth-input-icon" />
-              <input type="text" name="name" placeholder="FULL NAME" onChange={handleChange} required />
+              <input type="text" name="username" placeholder="USERNAME" value={formData.username} onChange={handleChange} required />
+              {usernameStatus.checking && (
+                <span className="auth-input-suffix"><span className="auth-spinner-sm" /></span>
+              )}
+              {!usernameStatus.checking && usernameStatus.available === true && (
+                <span className="auth-input-suffix text-success"><FiCheck size={18} /></span>
+              )}
+              {!usernameStatus.checking && usernameStatus.available === false && (
+                <span className="auth-input-suffix text-danger"><FiX size={18} /></span>
+              )}
             </motion.div>
+            {usernameStatus.message && (
+              <motion.small
+                className={`d-block mt-n2 mb-2 small ${usernameStatus.available ? 'text-success' : 'text-danger'}`}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                {usernameStatus.message}
+              </motion.small>
+            )}
 
             <motion.div variants={formItem} className="auth-input-group">
               <FiMail className="auth-input-icon" />

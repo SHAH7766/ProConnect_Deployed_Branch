@@ -42,7 +42,15 @@ const sendLoginAlert = (account, req) => {
 export const RegisterUser = async (req, res) => {
     let role = "user"
     try {
-        const { name, email, password, experience, cnic = '' } = req.body
+        const { username, name, email, password, experience, cnic = '' } = req.body
+        const displayName = name || username
+        const sanitizedUsername = username?.toString().trim().toLowerCase()
+        if (!sanitizedUsername || sanitizedUsername.length < 3) {
+            return res.status(400).send({ Message: "Username must be at least 3 characters", success: false })
+        }
+        if (!/^[a-z0-9._-]+$/.test(sanitizedUsername)) {
+            return res.status(400).send({ Message: "Username can only contain letters, numbers, dots, underscores and hyphens", success: false })
+        }
         const { sanitized: sanitizedCnic, isValid, error: cnicError } = validateAndSanitize(cnic)
         if (!isValid) {
             return res.status(400).send({ Message: cnicError, success: false })
@@ -50,14 +58,17 @@ export const RegisterUser = async (req, res) => {
         const existUser = await user.findOne({ email })
         if (existUser)
             return res.status(409).send({ Message: "User already exists", success: false })
+        const usernameTaken = await user.findOne({ username: sanitizedUsername })
+        if (usernameTaken)
+            return res.status(409).send({ Message: "Username already taken", success: false })
         const { isUnique } = await checkCnicUniqueness(sanitizedCnic)
         if (!isUnique)
             return res.status(409).send({ Message: "CNIC already exists", success: false })
         let hashPassword = await HashPassword(password)
-        let newuser = await user.create({ name, email, cnic: sanitizedCnic, password: hashPassword, role: role, experience })
+        let newuser = await user.create({ username: sanitizedUsername, name: displayName, email, cnic: sanitizedCnic, password: hashPassword, role: role, experience })
         newuser = await newuser.save()
         if (newuser) {
-            await EmailClient(email, name)
+            await EmailClient(email, displayName)
             return res.send({ Message: "Registered successfully", success: true })
         }
         else
@@ -70,7 +81,11 @@ export const RegisterUser = async (req, res) => {
 export const LoginController = async (req, res) => {
     try {
         const { email, password } = req.body
-        const existUser = await user.findOne({ email })
+        const loginValue = email?.toString().trim().toLowerCase() || ''
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginValue)
+        const existUser = await user.findOne(
+            isEmail ? { email: loginValue } : { username: loginValue }
+        )
         if (!existUser)
             return res.send({ Message: "Account not found", success: false })
         const resultPassword = await ComparePassword(password, existUser.password)
@@ -79,6 +94,7 @@ export const LoginController = async (req, res) => {
         let LoggedUser = {
             id: existUser._id,
             name: existUser.name,
+            username: existUser.username,
             email: existUser.email,
             role: existUser.role || 'user'
         }
@@ -98,7 +114,15 @@ export const LoginController = async (req, res) => {
 export const RegisterProvider = async (req, res) => {
     let role = ""
     try {
-        const { name, email, password, experience, category, charges, cnic = '', bankAccountNumber = '' } = req.body
+        const { username, name, email, password, experience, category, charges, cnic = '', bankAccountNumber = '' } = req.body
+        const displayName = name || username
+        const sanitizedUsername = username?.toString().trim().toLowerCase()
+        if (!sanitizedUsername || sanitizedUsername.length < 3) {
+            return res.status(400).send({ Message: "Username must be at least 3 characters", success: false })
+        }
+        if (!/^[a-z0-9._-]+$/.test(sanitizedUsername)) {
+            return res.status(400).send({ Message: "Username can only contain letters, numbers, dots, underscores and hyphens", success: false })
+        }
         const normalizedCategory = category === 'Electrician' ? 'Electronics' : (category || '')
         if (normalizedCategory && !['Plumber', 'Electronics', ''].includes(normalizedCategory))
             return res.status(400).send({ Message: "Please select a valid provider category", success: false })
@@ -115,12 +139,16 @@ export const RegisterProvider = async (req, res) => {
         const existProvider = await provider.findOne({ email })
         if (existProvider)
             return res.send({ Message: "Provider already exists", success: false })
+        const usernameTaken = await provider.findOne({ username: sanitizedUsername })
+        if (usernameTaken)
+            return res.status(409).send({ Message: "Username already taken", success: false })
         const { isUnique } = await checkCnicUniqueness(sanitizedCnic)
         if (!isUnique)
             return res.status(409).send({ Message: "CNIC already exists", success: false })
         let hashPassword = await HashPassword(password)
         let newProvider = await provider.create({
-            name,
+            username: sanitizedUsername,
+            name: displayName,
             email,
             cnic: sanitizedCnic,
             password: hashPassword,
@@ -158,7 +186,11 @@ export const RegisterProvider = async (req, res) => {
 export const loginProvider = async (req, res) => {
     try {
         const { email, password } = req.body
-        const existProvider = await provider.findOne({ email })
+        const loginValue = email?.toString().trim().toLowerCase() || ''
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginValue)
+        const existProvider = await provider.findOne(
+            isEmail ? { email: loginValue } : { username: loginValue }
+        )
         if (!existProvider)
             return res.send({ Message: "Account not found", success: false })
         const resultPassword = await ComparePassword(password, existProvider.password)
@@ -190,6 +222,7 @@ export const loginProvider = async (req, res) => {
         let LoggedProvider = {
             id: existProvider._id,
             name: existProvider.name,
+            username: existProvider.username,
             email: existProvider.email,
             role: existProvider.role
         }
@@ -334,12 +367,38 @@ export const ActivateProvider = async (req, res) => {
         return res.status(500).send({ Message: error.message || "Internal server error", success: false })
     }
 }
+export const CheckUsername = async (req, res) => {
+    try {
+        const { username } = req.body
+        const sanitized = username?.toString().trim().toLowerCase() || ''
+        if (!sanitized || sanitized.length < 3) {
+            return res.send({ available: false, message: 'Username must be at least 3 characters' })
+        }
+        if (!/^[a-z0-9._-]+$/.test(sanitized)) {
+            return res.send({ available: false, message: 'Invalid characters in username' })
+        }
+        const userTaken = await user.findOne({ username: sanitized }).select('_id')
+        const providerTaken = await provider.findOne({ username: sanitized }).select('_id')
+        const taken = !!(userTaken || providerTaken)
+        return res.send({ available: !taken, message: taken ? 'Username already taken' : 'Username available' })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send({ Message: "Internal server error", success: false })
+    }
+}
+
 export const ForgotPassword = async (req, res) => {
     try {
         const { email } = req.body
-        const existUser = await user.findOne({ email })
-        const existProvider = await provider.findOne({ email })
-        const account = existUser || existProvider
+        const loginValue = email?.toString().trim().toLowerCase() || ''
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginValue)
+
+        let account
+        if (isEmail) {
+            account = await user.findOne({ email: loginValue }) || await provider.findOne({ email: loginValue })
+        } else {
+            account = await user.findOne({ username: loginValue }) || await provider.findOne({ username: loginValue })
+        }
         if (!account)
             return res.status(404).send({ Message: "Account not found", success: false })
         const resetToken = await jwt.sign({ email }, process.env.SECRET_KEY, { expiresIn: "15m" })

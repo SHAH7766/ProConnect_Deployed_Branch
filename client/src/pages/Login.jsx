@@ -126,8 +126,8 @@ const Login = () => {
             <motion.div variants={formItem} className="auth-input-group">
               <FiMail className="auth-input-icon" />
               <input
-                type="email"
-                placeholder="EMAIL ADDRESS"
+                type="text"
+                placeholder="EMAIL OR USERNAME"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
