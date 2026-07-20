@@ -132,9 +132,16 @@ export const RegisterProvider = async (req, res) => {
         const trimmedBankAccountNumber = bankAccountNumber.trim()
         if (trimmedBankAccountNumber && !isValidSandboxAccountNumber(trimmedBankAccountNumber))
             return res.status(400).send({ Message: "Sandbox bank account number must be 6 to 34 letters or numbers", success: false })
-        const { sanitized: sanitizedCnic, isValid, error: cnicError } = validateAndSanitize(cnic)
-        if (!isValid) {
-            return res.status(400).send({ Message: cnicError, success: false })
+        let sanitizedCnic = ''
+        if (cnic && cnic.trim()) {
+            const result = validateAndSanitize(cnic)
+            if (!result.isValid) {
+                return res.status(400).send({ Message: result.error, success: false })
+            }
+            sanitizedCnic = result.sanitized
+            const { isUnique } = await checkCnicUniqueness(sanitizedCnic)
+            if (!isUnique)
+                return res.status(409).send({ Message: "CNIC already exists", success: false })
         }
         const existProvider = await provider.findOne({ email })
         if (existProvider)
@@ -142,15 +149,12 @@ export const RegisterProvider = async (req, res) => {
         const usernameTaken = await provider.findOne({ username: sanitizedUsername })
         if (usernameTaken)
             return res.status(409).send({ Message: "Username already taken", success: false })
-        const { isUnique } = await checkCnicUniqueness(sanitizedCnic)
-        if (!isUnique)
-            return res.status(409).send({ Message: "CNIC already exists", success: false })
         let hashPassword = await HashPassword(password)
-        let newProvider = await provider.create({
+        const providerFields = {
             username: sanitizedUsername,
             name: displayName,
             email,
-            cnic: sanitizedCnic,
+            cnic: cnic?.trim() ? sanitizedCnic : '',
             password: hashPassword,
             role: 'provider',
             experience: experience || '',
@@ -160,20 +164,21 @@ export const RegisterProvider = async (req, res) => {
             isActive: false,
             sandboxBankAccount: {
                 accountNumber: trimmedBankAccountNumber,
-                accountTitle: name,
+                accountTitle: displayName,
                 bankName: 'ProConnect Sandbox Bank',
                 balance: 0,
                 currency: 'PKR',
                 isSetupComplete: Boolean(trimmedBankAccountNumber),
                 transactions: []
             }
-        })
+        }
+        let newProvider = await provider.create(providerFields)
         if (!newProvider.sandboxBankAccount.accountNumber) {
             newProvider.sandboxBankAccount.accountNumber = createSandboxAccountNumber(newProvider._id)
         }
         newProvider = await newProvider.save()
         if (newProvider) {
-            await EmailClient(email, name)
+            await EmailClient(email, displayName)
             return res.send({ Message: "Registered successfully. Your provider account will be reviewed and activated by admin.", success: true })
         }
         else

@@ -116,12 +116,14 @@ const Register = () => {
       return setToast({ show: true, message: 'Passwords do not match', type: 'danger' });
     }
 
-    const cnicDigits = formData.cnic.replace(/[^0-9]/g, '');
-    if (!cnicDigits) {
-      return setToast({ show: true, message: 'CNIC is required', type: 'danger' });
-    }
-    if (cnicDigits.length !== 13) {
-      return setToast({ show: true, message: 'CNIC must be exactly 13 digits (e.g. 37405-1234567-1)', type: 'danger' });
+    if (!isProvider) {
+      const cnicDigits = formData.cnic.replace(/[^0-9]/g, '');
+      if (!cnicDigits) {
+        return setToast({ show: true, message: 'CNIC is required', type: 'danger' });
+      }
+      if (cnicDigits.length !== 13) {
+        return setToast({ show: true, message: 'CNIC must be exactly 13 digits (e.g. 37405-1234567-1)', type: 'danger' });
+      }
     }
 
     const endpoint = isProvider ? `${baseURL}/api/regprovider` : `${baseURL}/api/reguser`;
@@ -222,10 +224,12 @@ const Register = () => {
               <input type="email" name="email" placeholder="EMAIL ADDRESS" onChange={handleChange} required />
             </motion.div>
 
-            <motion.div variants={formItem} className="auth-input-group">
-              <FiUser className="auth-input-icon" />
-              <input type="text" name="cnic" placeholder="CNIC (e.g. 37405-1234567-1)" maxLength={15} value={formData.cnic} onChange={handleChange} required />
-            </motion.div>
+            {!isProvider && (
+              <motion.div variants={formItem} className="auth-input-group">
+                <FiUser className="auth-input-icon" />
+                <input type="text" name="cnic" placeholder="CNIC (e.g. 37405-1234567-1)" maxLength={15} value={formData.cnic} onChange={handleChange} required />
+              </motion.div>
+            )}
 
             <motion.div variants={formItem} className="auth-input-group">
               <FiLock className="auth-input-icon" />
@@ -249,6 +253,31 @@ const Register = () => {
                 {showPassword ? <FiEyeOff /> : <FiEye />}
               </button>
             </motion.div>
+
+            {formData.password.length > 0 && (
+              <motion.div
+                variants={formItem}
+                className="password-criteria"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+              >
+                {[
+                  { key: 'length', label: '8+ Characters' },
+                  { key: 'upper', label: 'Uppercase' },
+                  { key: 'number', label: 'Number' },
+                  { key: 'special', label: 'Special Char' }
+                ].map((item) => {
+                  const met = passwordCriteria[item.key];
+                  return (
+                    <div key={item.key} className={`criterion ${met ? 'valid' : 'invalid'}`}>
+                      {met ? <FiCheck size={12} /> : <FiX size={12} />}
+                      <span>{item.label}</span>
+                    </div>
+                  );
+                })}
+              </motion.div>
+            )}
 
             <motion.div variants={formItem} className="auth-input-group mb-4">
               <FiLock className="auth-input-icon" />

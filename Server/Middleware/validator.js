@@ -15,9 +15,7 @@ export const RegisterValidator = async (req, res, next) => {
         if (!regex.test(password))
             errors.push("password must be at least 7 characters long, contain at least one uppercase letter, one number, and one special character")
         const cnicDigits = cnic ? String(cnic).replace(/[^0-9]/g, '') : ''
-        if (!cnicDigits)
-            errors.push("CNIC is required")
-        else if (cnicDigits.length !== 13)
+        if (cnicDigits && cnicDigits.length !== 13)
             errors.push("CNIC must be exactly 13 digits")
         if (errors.length > 0)
             return res.status(400).json({ errors: errors, success: false })
