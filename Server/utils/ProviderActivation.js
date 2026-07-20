@@ -9,5 +9,7 @@ export const isProviderActive = (provider) => {
 
 export const activeProviderFilter = () => ({
     isActive: true,
-    isBanned: { $ne: true }
+    isBanned: { $ne: true },
+    category: { $exists: true, $ne: '' },
+    charges: { $gt: 0 }
 });

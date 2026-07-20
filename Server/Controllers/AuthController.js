@@ -129,6 +129,8 @@ export const RegisterProvider = async (req, res) => {
         const providerCharges = charges ? Number(charges) : 0
         if (charges && (!Number.isFinite(providerCharges) || providerCharges < 0))
             return res.status(400).send({ Message: "Please enter valid provider charges", success: false })
+        if (providerCharges > 500)
+            return res.status(400).send({ Message: "Maximum charges are Rs. 500", success: false })
         const trimmedBankAccountNumber = bankAccountNumber.trim()
         if (trimmedBankAccountNumber && !isValidSandboxAccountNumber(trimmedBankAccountNumber))
             return res.status(400).send({ Message: "Sandbox bank account number must be 6 to 34 letters or numbers", success: false })
@@ -574,7 +576,11 @@ export const UpdateProfileContact = async (req, res) => {
                 account.experience = experience;
             }
             if (charges !== undefined) {
-                account.charges = Number(charges);
+                const chargeValue = Number(charges);
+                if (chargeValue > 500) {
+                    return res.status(400).send({ Message: "Maximum charges are Rs. 500", success: false });
+                }
+                account.charges = chargeValue;
             }
         }
 
