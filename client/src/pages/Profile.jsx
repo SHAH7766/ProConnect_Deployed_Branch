@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import axios from 'axios'
 import { Alert, Badge, Button, Col, Container, Row, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { FiCheckCircle, FiCreditCard, FiMessageCircle, FiUser, FiXCircle, FiRefreshCw } from 'react-icons/fi';
 import { API_BASE_URL } from '../config/api';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 const getChatSeenKey = (userId, bookingId) => `chatLastSeen:${userId}:${bookingId}`;
 
@@ -30,6 +31,8 @@ const Profile = () => {
     useEffect(() => {
         fetchProfile();
     }, [token]);
+
+    useAutoRefresh(fetchProfile, 30000);
 
     useEffect(() => {
         if (!data?._id) return;

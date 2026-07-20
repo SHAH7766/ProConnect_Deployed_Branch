@@ -4,6 +4,7 @@ import { Badge, Button, Form, Modal, Spinner, Toast, ToastContainer } from 'reac
 import { useNavigate } from 'react-router-dom';
 import { FiAlertTriangle, FiBookmark, FiCalendar, FiCamera, FiCheckCircle, FiClock, FiCreditCard, FiEdit3, FiFilter, FiImage, FiMapPin, FiMessageCircle, FiSearch, FiStar, FiTrash2, FiTrendingUp, FiMic, FiSquare, FiX, FiSend, FiRefreshCw } from 'react-icons/fi';
 import { API_BASE_URL } from '../config/api';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 const getChatSeenKey = (userId, bookingId) => `chatLastSeen:${userId}:${bookingId}`;
 
@@ -75,6 +76,9 @@ const MyBookings = () => {
 
         return () => clearInterval(intervalId);
     }, [showChatModal, selectedBooking?._id, profile?._id]);
+
+    // Auto-refresh bookings every 15s + on tab focus to catch updates from the other side
+    useAutoRefresh(fetchBookings, 15000);
 
     // Keep selectedBooking continuously synchronized with bookings updates
     useEffect(() => {
