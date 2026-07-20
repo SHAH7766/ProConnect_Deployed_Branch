@@ -38,6 +38,7 @@ const MyBookings = () => {
     const [submittingReview, setSubmittingReview] = useState(false);
     const [submittingCompletion, setSubmittingCompletion] = useState(false);
     const [releasingPayment, setReleasingPayment] = useState(false);
+    const [adjustingAmount, setAdjustingAmount] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
     const [deletingAllBookings, setDeletingAllBookings] = useState(false);
     const [payingBookingId, setPayingBookingId] = useState('');
