@@ -73,12 +73,12 @@ export const LoginController = async (req, res) => {
             id: existUser._id,
             name: existUser.name,
             email: existUser.email,
-            role: existUser.role
+            role: existUser.role || 'user'
         }
         if (resultPassword) {
             sendLoginAlert(existUser, req)
             const token = jwt.sign({ LoggedUser }, process.env.SECRET_KEY, { expiresIn: "50min" })
-            return res.send({ Message: `Welcome back ${existUser.name}`, success: true, token, role: existUser.role })
+            return res.send({ Message: `Welcome back ${existUser.name}`, success: true, token, role: existUser.role || 'user' })
         }
     } catch (error) {
         console.log(error)
@@ -240,6 +240,11 @@ export const Profile = async (req, res) => {
 
         if (!profileData) {
             return res.status(404).send({ Message: "Profile not found", success: false });
+        }
+
+        // Normalize empty role to 'user' for legacy accounts
+        if (!profileData.role) {
+            profileData.role = 'user';
         }
 
         const bookingFilter = role === 'provider' ? { providerId: id } : { customerId: id };
