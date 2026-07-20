@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FiAlertTriangle, FiBriefcase, FiCalendar, FiEdit, FiLogOut, FiUser, FiMoon, FiSun } from 'react-icons/fi';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
+import NotificationBell from './NotificationBell';
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -92,6 +93,7 @@ const Navigation = () => {
             <button className="btn btn-link p-0 border-0 me-2 theme-toggle-btn" onClick={toggleTheme}>
               {isDarkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
             </button>
+            {isLoggedIn && <NotificationBell />}
             {isLoggedIn ? (
               <NavDropdown
                 title={

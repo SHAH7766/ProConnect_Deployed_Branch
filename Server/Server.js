@@ -7,6 +7,7 @@ import cors from 'cors'
 import mongoose from 'mongoose'
 import ComplaintsRouter from './Routes/ComplaintsRoutes.js'
 import BookingRouter from './Routes/BookingRoutes.js'
+import NotificationRouter from './Routes/NotificationRoutes.js'
 import provider from './Model/Provider.js'
 import { sendProviderActivationEmail } from './utils/ProviderActivationEmail.js'
 const app = express()
@@ -97,6 +98,7 @@ app.get("/api/diagnostics", (req, res) => {
 app.use("/api", router)
 app.use('/api', ComplaintsRouter) // New route for complaints management
 app.use('/api', BookingRouter)
+app.use('/api', NotificationRouter)
 const PORT = process.env.PORT || 8080
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`.bgBrightBlue)

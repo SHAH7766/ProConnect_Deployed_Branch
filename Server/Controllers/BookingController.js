@@ -5,6 +5,7 @@ import User from "../Model/User.js";
 import Review from "../Model/Review.js";
 import mongoose from "mongoose";
 import { sendBookingNotification, sendCustomerBookingNotification, sendPaymentReceivedNotification, sendWorkCompletedNotification, sendBookingAcceptedNotification } from "../utils/BookingNotification.js";
+import { createNotification } from "./NotificationController.js";
 import { uploadAudioBuffer, uploadImageBuffer } from "../utils/Cloudinary.js";
 import { activeProviderFilter, isProviderActive } from "../utils/ProviderActivation.js";
 import Safepay from "@sfpy/node-core";
@@ -563,6 +564,24 @@ export const CreateBooking = async (req, res) => {
             }
         }
 
+        // Notify provider of new booking request
+        if (selectedProvider) {
+            createNotification({
+                recipientId: selectedProvider._id, recipientRole: 'provider',
+                type: 'new_booking', title: 'New Booking Request 🚀',
+                message: `${customer?.name || 'A customer'} has sent you a new booking request for ${serviceCategory}.`,
+                bookingId: booking._id
+            });
+        }
+        if (customer) {
+            createNotification({
+                recipientId: customer._id, recipientRole: 'user',
+                type: 'new_booking', title: 'Booking Request Sent',
+                message: `Your ${serviceCategory} service request has been sent to ${selectedProvider?.name || 'the provider'}.`,
+                bookingId: booking._id
+            });
+        }
+
         return res.status(201).send({ Message: "Service request sent successfully", booking, success: true });
     } catch (error) {
         console.log(error);
@@ -785,6 +804,58 @@ export const UpdateBookingStatus = async (req, res) => {
             }
         }
         await booking.save();
+
+        // --- Send in-app notifications ---
+        const populatedBooking = await Booking.findById(booking._id).populate('providerId', 'name email').populate('customerId', 'name email');
+        const customer = populatedBooking?.customerId;
+        const providerProfile = populatedBooking?.providerId;
+
+        if (status && status !== booking.status) {
+            const statusNotifications = {
+                'Accepted': {
+                    customerMsg: `Your booking has been accepted by ${providerProfile?.name || 'the provider'}`,
+                    providerMsg: null
+                },
+                'In-Progress': {
+                    customerMsg: `${providerProfile?.name || 'The provider'} has started working on your booking`,
+                    providerMsg: null
+                },
+                'Completed': {
+                    customerMsg: `${providerProfile?.name || 'The provider'} has completed the work. Please confirm.`,
+                    providerMsg: 'You marked the work as completed. Waiting for customer confirmation.'
+                },
+                'Cancelled': {
+                    customerMsg: `Your booking has been cancelled`,
+                    providerMsg: `Booking with ${customer?.name || 'customer'} has been cancelled`
+                }
+            };
+            const notif = statusNotifications[status];
+            if (notif?.customerMsg && customer) {
+                createNotification({ recipientId: customer._id, recipientRole: 'user', type: `booking_${status.toLowerCase()}`, title: 'Booking Updated', message: notif.customerMsg, bookingId: booking._id });
+            }
+            if (notif?.providerMsg && providerProfile) {
+                createNotification({ recipientId: providerProfile._id, recipientRole: 'provider', type: `booking_${status.toLowerCase()}`, title: 'Booking Updated', message: notif.providerMsg, bookingId: booking._id });
+            }
+        }
+
+        if (customerCompletionConfirmed === true && providerProfile) {
+            createNotification({
+                recipientId: providerProfile._id, recipientRole: 'provider',
+                type: 'booking_completed', title: 'Payment Released 🎉',
+                message: `${customer?.name || 'Customer'} confirmed completion. Payment has been released to your account.`,
+                bookingId: booking._id
+            });
+        }
+
+        if (paymentStatus === 'Paid' && providerProfile) {
+            createNotification({
+                recipientId: providerProfile._id, recipientRole: 'provider',
+                type: 'payment_paid', title: 'Payment Received',
+                message: `${customer?.name || 'Customer'} has paid Rs. ${booking.charges} for the booking.`,
+                bookingId: booking._id
+            });
+        }
+        // --- End notifications ---
 
         if (statusBecameAccepted) {
             const bookingForEmail = await Booking.findById(booking._id).populate('providerId', 'email name').populate('customerId', 'email name');
