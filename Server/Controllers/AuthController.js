@@ -39,7 +39,7 @@ const sendLoginAlert = (account, req) => {
 }
 
 export const RegisterUser = async (req, res) => {
-    let role = ""
+    let role = "user"
     try {
         const { name, email, password, experience, cnic = '' } = req.body
         const existUser = await user.findOne({ email })
