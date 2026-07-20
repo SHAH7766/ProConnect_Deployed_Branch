@@ -203,24 +203,37 @@ const buildSafepayFailureMessage = (details = {}) => {
     return details.reason || "Payment failed or was cancelled. Please retry the payment from My Bookings.";
 };
 
+const WEBHOOK_MAX_RETRIES = 2;
+const WEBHOOK_RETRY_DELAY_MS = 1500;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const sendPaymentReleaseWebhook = async (payload) => {
     const webhookUrl = process.env.N8N_PAYMENT_RELEASE_WEBHOOK_URL;
     if (!webhookUrl) return Promise.resolve();
 
-    try {
-        const response = await fetch(webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+    for (let attempt = 1; attempt <= WEBHOOK_MAX_RETRIES; attempt++) {
+        try {
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-        if (!response.ok) {
-            console.error(`n8n payment release webhook failed with status ${response.status}`);
+            if (!response.ok) {
+                console.error(`n8n payment release webhook failed with status ${response.status} (attempt ${attempt}/${WEBHOOK_MAX_RETRIES})`);
+                if (attempt < WEBHOOK_MAX_RETRIES) {
+                    await sleep(WEBHOOK_RETRY_DELAY_MS * attempt);
+                    continue;
+                }
+            }
+            return response;
+        } catch (error) {
+            console.error(`n8n payment release webhook error (attempt ${attempt}/${WEBHOOK_MAX_RETRIES}):`, error.message);
+            if (attempt < WEBHOOK_MAX_RETRIES) {
+                await sleep(WEBHOOK_RETRY_DELAY_MS * attempt);
+                continue;
+            }
         }
-        return response;
-    } catch (error) {
-        console.error("n8n payment release webhook error:", error.message);
-        return Promise.reject(error);
     }
 };
 
@@ -309,20 +322,29 @@ const sendBookingRequestWebhook = async (payload) => {
     const webhookUrl = process.env.N8N_BOOKING_REQUEST_URL;
     if (!webhookUrl) return Promise.resolve();
 
-    try {
-        const response = await fetch(webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+    for (let attempt = 1; attempt <= WEBHOOK_MAX_RETRIES; attempt++) {
+        try {
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-        if (!response.ok) {
-            console.error(`n8n booking request webhook failed with status ${response.status}`);
+            if (!response.ok) {
+                console.error(`n8n booking request webhook failed with status ${response.status} (attempt ${attempt}/${WEBHOOK_MAX_RETRIES})`);
+                if (attempt < WEBHOOK_MAX_RETRIES) {
+                    await sleep(WEBHOOK_RETRY_DELAY_MS * attempt);
+                    continue;
+                }
+            }
+            return response;
+        } catch (error) {
+            console.error(`n8n booking request webhook error (attempt ${attempt}/${WEBHOOK_MAX_RETRIES}):`, error.message);
+            if (attempt < WEBHOOK_MAX_RETRIES) {
+                await sleep(WEBHOOK_RETRY_DELAY_MS * attempt);
+                continue;
+            }
         }
-        return response;
-    } catch (error) {
-        console.error("n8n booking request webhook error:", error.message);
-        return Promise.reject(error);
     }
 };
 
@@ -513,15 +535,19 @@ export const CreateBooking = async (req, res) => {
             };
 
             if (process.env.N8N_BOOKING_REQUEST_URL) {
-                sendBookingRequestWebhook(bookingNotificationPayload);
+                sendBookingRequestWebhook(bookingNotificationPayload).catch((error) => {
+                    console.error("Booking request webhook dispatch failed:", error.message);
+                });
             }
-            
+
             sendBookingNotification(selectedProvider.email, {
                 customerName: bookingNotificationPayload.customerName,
                 serviceCategory,
                 scheduledDate: bookingNotificationPayload.formattedScheduledDate,
                 charges: finalCharges,
                 description
+            }).catch((error) => {
+                console.error("Booking notification dispatch failed:", error.message);
             });
 
             if (customer?.email) {
@@ -531,6 +557,8 @@ export const CreateBooking = async (req, res) => {
                     serviceCategory,
                     scheduledDate: bookingNotificationPayload.formattedScheduledDate,
                     charges: finalCharges
+                }).catch((error) => {
+                    console.error("Customer booking notification dispatch failed:", error.message);
                 });
             }
         }
