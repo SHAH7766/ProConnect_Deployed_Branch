@@ -20,6 +20,7 @@ const normalizeAccount = (account, type) => ({
   name: account.name,
   email: account.email,
   phone: account.phone || '',
+  cnic: account.cnic || '',
   role: account.role,
   category: account.category,
   experience: account.experience,
@@ -112,7 +113,7 @@ export const GetAccounts = async (req, res) => {
     const pattern = search.trim()
       ? { $regex: escapeRegExp(search.trim()), $options: 'i' }
       : null;
-    const textFilter = pattern ? { $or: [{ name: pattern }, { email: pattern }, { phone: pattern }] } : {};
+    const textFilter = pattern ? { $or: [{ name: pattern }, { email: pattern }, { phone: pattern }, { cnic: pattern }] } : {};
 
     const [users, providers] = await Promise.all([
       type === 'providers' ? [] : User.find(textFilter).select(accountFields).sort({ createdAt: -1 }),

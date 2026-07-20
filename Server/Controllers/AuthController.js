@@ -8,6 +8,7 @@ import { resetpassword } from "../utils/ResetPassword.js"
 import Booking from "../Model/Booking.js"
 import { isProviderActive } from "../utils/ProviderActivation.js"
 import { EmailClient } from "../utils/Nodemailer.js"
+import { validateAndSanitize, checkCnicUniqueness } from "../Utils/CnicValidator.js"
 
 const isValidSandboxAccountNumber = (value = '') => /^[A-Za-z0-9 -]{6,34}$/.test(value);
 
@@ -42,12 +43,18 @@ export const RegisterUser = async (req, res) => {
     let role = "user"
     try {
         const { name, email, password, experience, cnic = '' } = req.body
+        const { sanitized: sanitizedCnic, isValid, error: cnicError } = validateAndSanitize(cnic)
+        if (!isValid) {
+            return res.status(400).send({ Message: cnicError, success: false })
+        }
         const existUser = await user.findOne({ email })
-        const existCnic = await user.findOne({ cnic })
-        if (existUser || existCnic)
-            return res.status(409).send({ Message: "User or CNIC already exists", success: false })
+        if (existUser)
+            return res.status(409).send({ Message: "User already exists", success: false })
+        const { isUnique } = await checkCnicUniqueness(sanitizedCnic)
+        if (!isUnique)
+            return res.status(409).send({ Message: "CNIC already exists", success: false })
         let hashPassword = await HashPassword(password)
-        let newuser = await user.create({ name, email, cnic: cnic.trim(), password: hashPassword, role: role, experience })
+        let newuser = await user.create({ name, email, cnic: sanitizedCnic, password: hashPassword, role: role, experience })
         newuser = await newuser.save()
         if (newuser) {
             await EmailClient(email, name)
@@ -101,15 +108,21 @@ export const RegisterProvider = async (req, res) => {
         const trimmedBankAccountNumber = bankAccountNumber.trim()
         if (trimmedBankAccountNumber && !isValidSandboxAccountNumber(trimmedBankAccountNumber))
             return res.status(400).send({ Message: "Sandbox bank account number must be 6 to 34 letters or numbers", success: false })
+        const { sanitized: sanitizedCnic, isValid, error: cnicError } = validateAndSanitize(cnic)
+        if (!isValid) {
+            return res.status(400).send({ Message: cnicError, success: false })
+        }
         const existProvider = await provider.findOne({ email })
-        let countProviders = await provider.find()
         if (existProvider)
             return res.send({ Message: "Provider already exists", success: false })
+        const { isUnique } = await checkCnicUniqueness(sanitizedCnic)
+        if (!isUnique)
+            return res.status(409).send({ Message: "CNIC already exists", success: false })
         let hashPassword = await HashPassword(password)
         let newProvider = await provider.create({
             name,
             email,
-            cnic: cnic.trim(),
+            cnic: sanitizedCnic,
             password: hashPassword,
             role: 'provider',
             experience: experience || '',
@@ -419,11 +432,16 @@ export const UpdateProfileContact = async (req, res) => {
         account.email = trimmedEmail;
         account.phone = trimmedPhone;
 
-        if (role !== 'provider') {
-            const trimmedCnic = cnic.trim();
-            if (trimmedCnic) {
-                account.cnic = trimmedCnic;
+        if (cnic && cnic.trim()) {
+            const { sanitized: sanitizedCnic, isValid, error: cnicError } = validateAndSanitize(cnic);
+            if (!isValid) {
+                return res.status(400).send({ Message: cnicError, success: false });
             }
+            const { isUnique } = await checkCnicUniqueness(sanitizedCnic, id, role);
+            if (!isUnique) {
+                return res.status(409).send({ Message: "CNIC already exists", success: false });
+            }
+            account.cnic = sanitizedCnic;
         }
 
         if (role === 'provider') {
@@ -465,6 +483,7 @@ export const UpdateProfileContact = async (req, res) => {
                 name: account.name,
                 email: account.email,
                 phone: account.phone,
+                cnic: account.cnic || '',
                 role: account.role,
                 sandboxBankAccount: account.sandboxBankAccount,
                 category: account.category,

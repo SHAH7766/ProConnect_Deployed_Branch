@@ -70,6 +70,14 @@ const EditProfile = () => {
     const handleContactSubmit = async (e) => {
         e.preventDefault();
 
+        if (contactForm.cnic && contactForm.cnic.trim()) {
+            const cnicDigits = contactForm.cnic.replace(/[^0-9]/g, '');
+            if (cnicDigits.length !== 13) {
+                setToast({ show: true, message: 'CNIC must be exactly 13 digits (e.g. 37405-1234567-1)', type: 'danger' });
+                return;
+            }
+        }
+
         try {
             setSavingContact(true);
             const { data } = await axios.put(`${baseURL}/api/profile/contact`, contactForm, {
@@ -209,7 +217,8 @@ const EditProfile = () => {
                                     <input
                                         name="cnic"
                                         type="text"
-                                        placeholder="CNIC NUMBER"
+                                        placeholder="CNIC (e.g. 37405-1234567-1)"
+                                        maxLength={15}
                                         value={contactForm.cnic}
                                         onChange={handleContactChange}
                                     />

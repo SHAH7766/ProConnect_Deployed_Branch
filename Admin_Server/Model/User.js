@@ -9,6 +9,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  cnic: {
+    type: String,
+    default: ''
+  },
   phone: {
     type: String,
     default: ''

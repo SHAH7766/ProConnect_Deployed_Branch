@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken'
 export const RegisterValidator = async (req, res, next) => {
     const regex =/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,}$/;
     try {
-        const { name, email, password } = req.body
+        const { name, email, password, cnic } = req.body
         const errors = []
         if (!name)
             errors.push("username is missing")
@@ -13,6 +13,11 @@ export const RegisterValidator = async (req, res, next) => {
             errors.push("password is missing")
         if (!regex.test(password))
             errors.push("password must be at least 7 characters long, contain at least one uppercase letter, one number, and one special character")
+        const cnicDigits = cnic ? String(cnic).replace(/[^0-9]/g, '') : ''
+        if (!cnicDigits)
+            errors.push("CNIC is required")
+        else if (cnicDigits.length !== 13)
+            errors.push("CNIC must be exactly 13 digits")
         if (errors.length > 0)
             return res.status(400).json({ errors: errors, success: false })
         next()

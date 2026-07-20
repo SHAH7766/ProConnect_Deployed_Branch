@@ -7,6 +7,11 @@ import { API_BASE_URL } from '../config/api';
 
 const getChatSeenKey = (userId, bookingId) => `chatLastSeen:${userId}:${bookingId}`;
 
+const formatCnic = (cnic) => {
+    if (!cnic || cnic.length !== 13) return cnic;
+    return `${cnic.slice(0, 5)}-${cnic.slice(5, 12)}-${cnic.slice(12)}`;
+};
+
 const Profile = () => {
     const [data, setData] = useState(null);
     const [activity, setActivity] = useState(null);
@@ -121,7 +126,7 @@ const Profile = () => {
                         <div className="border-top pt-3">
                             <p className="mb-2"><strong>Account type:</strong> {data?.role || 'customer'}</p>
                             {data?.phone && <p className="mb-2"><strong>Phone:</strong> {data.phone}</p>}
-                            {data?.cnic && <p className="mb-2"><strong>CNIC:</strong> {data.cnic}</p>}
+                            {data?.cnic && <p className="mb-2"><strong>CNIC:</strong> {formatCnic(data.cnic)}</p>}
                             <p className="mb-2"><strong>Total requests:</strong> {activityStats.totalRequests}</p>
                             <p className="mb-0"><strong>Member since:</strong> {memberSince}</p>
                         </div>

@@ -10,7 +10,14 @@ const provider=new mongoose.Schema({
     },
     cnic:{
         type:String,
-        default:''
+        default:'',
+        validate: {
+            validator: function(v) {
+                if (!v) return true;
+                return /^\d{13}$/.test(v);
+            },
+            message: 'CNIC must be exactly 13 digits'
+        }
     },
     password:{
         type:String,

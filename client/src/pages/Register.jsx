@@ -68,6 +68,14 @@ const Register = () => {
       return setToast({ show: true, message: 'Passwords do not match', type: 'danger' });
     }
 
+    const cnicDigits = formData.cnic.replace(/[^0-9]/g, '');
+    if (!cnicDigits) {
+      return setToast({ show: true, message: 'CNIC is required', type: 'danger' });
+    }
+    if (cnicDigits.length !== 13) {
+      return setToast({ show: true, message: 'CNIC must be exactly 13 digits (e.g. 37405-1234567-1)', type: 'danger' });
+    }
+
     const endpoint = isProvider ? `${baseURL}/api/regprovider` : `${baseURL}/api/reguser`;
 
     const payload = isProvider
@@ -150,7 +158,7 @@ const Register = () => {
 
             <motion.div variants={formItem} className="auth-input-group">
               <FiUser className="auth-input-icon" />
-              <input type="text" name="cnic" placeholder="CNIC NUMBER" value={formData.cnic} onChange={handleChange} required />
+              <input type="text" name="cnic" placeholder="CNIC (e.g. 37405-1234567-1)" maxLength={15} value={formData.cnic} onChange={handleChange} required />
             </motion.div>
 
             <motion.div variants={formItem} className="auth-input-group">
