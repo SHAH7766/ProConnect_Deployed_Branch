@@ -1,5 +1,5 @@
 import express from 'express'
-import { GetAll, RegisterUser, LoginController, RegisterProvider, loginProvider, DeleteUser, Profile, GetAllProviders, ForgotPassword, ResetPassword, UpdateProfilePassword, UpdateProfileContact, ActivateProvider, CheckUsername, CheckCnic } from "../Controllers/AuthController.js"
+import { GetAll, RegisterUser, LoginController, RegisterProvider, loginProvider, DeleteUser, Profile, GetAllProviders, ForgotPassword, ResetPassword, UpdateProfilePassword, UpdateProfileContact, ActivateProvider, CheckUsername, CheckCnic, CheckEmail } from "../Controllers/AuthController.js"
 import { RegisterValidator, VerifyToken, ResetPasswordValidator } from "../Middleware/validator.js"
 import { sendEmailOTP, ResetPasswordByOtp } from '../Controllers/OTPcontroller.js'
 import { DetectServiceCategory, RecommendProviders } from '../Controllers/AIController.js'
@@ -19,6 +19,7 @@ router.post("/forgotpassword", ForgotPassword)  //=> link to reset password
 router.post("/resetpassword", ResetPasswordValidator, ResetPassword)  //=> reset password using token
 router.post("/check-username", CheckUsername)  //=> check username availability
 router.post("/check-cnic", CheckCnic)  //=> check CNIC availability
+router.post("/check-email", CheckEmail)  //=> check email availability
 router.post("/sendotp", sendEmailOTP)  //=> send OTP to email for verification
 router.post("/verifyotp", ResetPasswordByOtp);
 router.post("/detectcategory", DetectServiceCategory)

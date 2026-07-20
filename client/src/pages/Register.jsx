@@ -40,8 +40,10 @@ const Register = () => {
   const [passwordChecking, setPasswordChecking] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState({ checking: false, available: null, message: '' });
   const [cnicStatus, setCnicStatus] = useState({ checking: false, available: null, message: '' });
+  const [emailStatus, setEmailStatus] = useState({ checking: false, available: null, message: '' });
   const debounceTimer = useRef(null);
   const cnicCheckTimer = useRef(null);
+  const emailCheckTimer = useRef(null);
   const passwordCheckTimer = useRef(null);
 
   const baseURL = API_BASE_URL;
@@ -114,6 +116,25 @@ const Register = () => {
     }
   }, []);
 
+  const checkEmail = useCallback(async (emailValue) => {
+    const sanitized = emailValue.toString().trim().toLowerCase();
+    if (!sanitized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitized)) {
+      setEmailStatus({ checking: false, available: null, message: '' });
+      return;
+    }
+    setEmailStatus(prev => ({ ...prev, checking: true }));
+    try {
+      const { data } = await axios.post(`${API_BASE_URL}/api/check-email`, { email: sanitized });
+      setEmailStatus({
+        checking: false,
+        available: data.available,
+        message: data.message
+      });
+    } catch {
+      setEmailStatus({ checking: false, available: null, message: '' });
+    }
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -134,6 +155,16 @@ const Register = () => {
       if (digits.length >= 13) {
         setCnicStatus(prev => ({ ...prev, checking: true }));
         cnicCheckTimer.current = setTimeout(() => checkCnic(value), 500);
+      }
+    }
+
+    if (name === 'email') {
+      setEmailStatus({ checking: false, available: null, message: '' });
+      if (emailCheckTimer.current) clearTimeout(emailCheckTimer.current);
+      const sanitized = value.toString().trim().toLowerCase();
+      if (sanitized && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitized)) {
+        setEmailStatus(prev => ({ ...prev, checking: true }));
+        emailCheckTimer.current = setTimeout(() => checkEmail(value), 500);
       }
     }
   };
@@ -256,8 +287,26 @@ const Register = () => {
 
             <motion.div variants={formItem} className="auth-input-group">
               <FiMail className="auth-input-icon" />
-              <input type="email" name="email" placeholder="EMAIL ADDRESS" onChange={handleChange} required />
+              <input type="email" name="email" placeholder="EMAIL ADDRESS" value={formData.email} onChange={handleChange} required />
+              {emailStatus.checking && (
+                <span className="auth-input-suffix"><span className="auth-spinner-sm" /></span>
+              )}
+              {!emailStatus.checking && emailStatus.available === true && formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
+                <span className="auth-input-suffix text-success"><FiCheck size={18} /></span>
+              )}
+              {!emailStatus.checking && emailStatus.available === false && (
+                <span className="auth-input-suffix text-danger"><FiX size={18} /></span>
+              )}
             </motion.div>
+            {emailStatus.message && (
+              <motion.small
+                className="d-block mt-n2 mb-2 small text-danger"
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                {emailStatus.message}
+              </motion.small>
+            )}
 
             {!isProvider && (
               <motion.div variants={formItem} className="auth-input-group">

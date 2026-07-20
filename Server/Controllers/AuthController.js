@@ -372,6 +372,26 @@ export const ActivateProvider = async (req, res) => {
         return res.status(500).send({ Message: error.message || "Internal server error", success: false })
     }
 }
+export const CheckEmail = async (req, res) => {
+    try {
+        const { email } = req.body
+        const sanitized = email?.toString().trim().toLowerCase() || ''
+        if (!sanitized) {
+            return res.send({ available: false, message: 'Email is required' })
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitized)) {
+            return res.send({ available: false, message: 'Invalid email format' })
+        }
+        const userConflict = await user.findOne({ email: sanitized }).select('_id')
+        const providerConflict = await provider.findOne({ email: sanitized }).select('_id')
+        const taken = !!(userConflict || providerConflict)
+        return res.send({ available: !taken, message: taken ? 'Email already exists' : '' })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send({ Message: "Internal server error", success: false })
+    }
+}
+
 export const CheckCnic = async (req, res) => {
     try {
         const { cnic } = req.body
