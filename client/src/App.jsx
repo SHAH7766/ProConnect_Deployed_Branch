@@ -18,6 +18,10 @@ import PaymentResult from './pages/PaymentResult';
 import { getTokenExpiration } from './Auth/LogoutHandler.js';
 import ForgotPasswordForm from './pages/ForgotPasswordForm.jsx';
 import ResetPassword from './pages/ResetPassword.jsx';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import Cookies from './pages/Cookies';
+import Help from './pages/Help';
 import Services from './pages/Services';
 import HowItWorks from './pages/HowItWorks';
 import About from './pages/About';
@@ -94,6 +98,10 @@ function App() {
             <Route path='/forgotpassword' element={<PageTransition><ForgotPasswordForm /></PageTransition>} />
             <Route path='/resetpassword' element={<PageTransition><ResetPassword /></PageTransition>} />
             <Route path='/resetpassword/:token' element={<PageTransition><ResetPassword /></PageTransition>} />
+            <Route path='/privacy' element={<PageTransition><Privacy /></PageTransition>} />
+            <Route path='/terms' element={<PageTransition><Terms /></PageTransition>} />
+            <Route path='/cookies' element={<PageTransition><Cookies /></PageTransition>} />
+            <Route path='/help' element={<PageTransition><Help /></PageTransition>} />
           </Routes>
         </AnimatePresence>
       </div>
