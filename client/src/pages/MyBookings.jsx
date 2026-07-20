@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import axios from 'axios'
 import { Badge, Button, Form, Modal, Spinner, Toast, ToastContainer } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
@@ -58,10 +58,34 @@ const MyBookings = () => {
     const navigate = useNavigate();
     const baseURL = API_BASE_URL;
 
+    const fetchProfile = useCallback(async () => {
+        try {
+            const { data } = await axios.get(`${baseURL}/api/profile`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setProfile(data.profile);
+        } catch (err) {
+            console.error("Profile fetch error:", err);
+        }
+    }, [baseURL, token]);
+
+    const fetchBookings = useCallback(async () => {
+        try {
+            const { data } = await axios.get(`${baseURL}/api/mybookings`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setBookings(data);
+        } catch (err) {
+            console.error("Bookings fetch error:", err);
+        } finally {
+            setLoading(false);
+        }
+    }, [baseURL, token]);
+
     useEffect(() => {
         fetchProfile();
         fetchBookings();
-    }, [token]);
+    }, [fetchProfile, fetchBookings]);
 
     useEffect(() => {
         if (!showChatModal || !selectedBooking) return;
@@ -99,30 +123,6 @@ const MyBookings = () => {
             if (completionPreview) URL.revokeObjectURL(completionPreview);
         };
     }, [completionPreview]);
-
-    const fetchProfile = async () => {
-        try {
-            const { data } = await axios.get(`${baseURL}/api/profile`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setProfile(data.profile);
-        } catch (err) {
-            console.error("Profile fetch error:", err);
-        }
-    };
-
-    const fetchBookings = async () => {
-        try {
-            const { data } = await axios.get(`${baseURL}/api/mybookings`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setBookings(data);
-        } catch (err) {
-            console.error("Bookings fetch error:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const updateBookingStatus = async (bookingId, status) => {
         try {
