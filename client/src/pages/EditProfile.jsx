@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { Badge, Container, Row, Col, Toast, ToastContainer, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiCreditCard, FiMail, FiLock, FiPhone, FiRefreshCw, FiBriefcase, FiUser } from 'react-icons/fi';
+import { FiArrowLeft, FiCreditCard, FiMail, FiLock, FiPhone, FiRefreshCw, FiBriefcase, FiUser, FiCheck, FiX } from 'react-icons/fi';
 import { API_BASE_URL } from '../config/api';
 
 const getGeneratedSandboxAccountNumber = (providerId = '') => providerId
@@ -29,6 +29,8 @@ const EditProfile = () => {
         confirmPassword: ''
     });
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+    const [phoneStatus, setPhoneStatus] = useState({ checking: false, available: null, message: '' });
+    const phoneCheckTimer = useRef(null);
     const token = localStorage.getItem("token");
     const navigate = useNavigate();
     const baseURL = API_BASE_URL;
@@ -65,7 +67,36 @@ const EditProfile = () => {
 
     const handleContactChange = (e) => {
         setContactForm({ ...contactForm, [e.target.name]: e.target.value });
+
+        if (e.target.name === 'phone') {
+            setPhoneStatus({ checking: false, available: null, message: '' });
+            if (phoneCheckTimer.current) clearTimeout(phoneCheckTimer.current);
+            const digits = e.target.value.replace(/[^0-9]/g, '');
+            if (digits.length >= 10) {
+                setPhoneStatus(prev => ({ ...prev, checking: true }));
+                phoneCheckTimer.current = setTimeout(() => checkPhone(e.target.value), 500);
+            }
+        }
     };
+
+    const checkPhone = useCallback(async (phoneValue) => {
+        const digits = phoneValue.replace(/[^0-9]/g, '');
+        if (digits.length < 10) {
+            setPhoneStatus({ checking: false, available: null, message: '' });
+            return;
+        }
+        setPhoneStatus(prev => ({ ...prev, checking: true }));
+        try {
+            const { data } = await axios.post(`${baseURL}/api/check-phone`, { phone: phoneValue });
+            setPhoneStatus({
+                checking: false,
+                available: data.available,
+                message: data.message
+            });
+        } catch {
+            setPhoneStatus({ checking: false, available: null, message: '' });
+        }
+    }, [baseURL]);
 
     const handleContactSubmit = async (e) => {
         e.preventDefault();
@@ -211,7 +242,21 @@ const EditProfile = () => {
                                         value={contactForm.phone}
                                         onChange={handleContactChange}
                                     />
+                                    {phoneStatus.checking && (
+                                        <span className="auth-input-suffix"><span className="auth-spinner-sm" /></span>
+                                    )}
+                                    {!phoneStatus.checking && phoneStatus.available === true && contactForm.phone.replace(/[^0-9]/g, '').length >= 10 && (
+                                        <span className="auth-input-suffix text-success"><FiCheck size={18} /></span>
+                                    )}
+                                    {!phoneStatus.checking && phoneStatus.available === false && (
+                                        <span className="auth-input-suffix text-danger"><FiX size={18} /></span>
+                                    )}
                                 </div>
+                                {phoneStatus.message && (
+                                    <small className="d-block mt-n2 mb-3 small text-danger">
+                                        {phoneStatus.message}
+                                    </small>
+                                )}
                                 <div className="auth-input-group mb-4">
                                     <FiUser className="auth-input-icon" />
                                     <input

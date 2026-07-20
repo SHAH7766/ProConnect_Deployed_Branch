@@ -394,6 +394,25 @@ export const CheckEmail = async (req, res) => {
     }
 }
 
+export const CheckPhone = async (req, res) => {
+    try {
+        const { phone, excludeId } = req.body
+        const digits = phone ? String(phone).replace(/[^0-9]/g, '') : ''
+        if (!digits || digits.length < 10) {
+            return res.send({ available: false, message: 'Phone number must have at least 10 digits' })
+        }
+        const last10 = digits.slice(-10)
+        const query = { phone: { $regex: `${last10}$` } }
+        const userMatch = await user.findOne(query).select('_id')
+        const providerMatch = await provider.findOne(query).select('_id')
+        const taken = !!(userMatch || providerMatch)
+        return res.send({ available: !taken, message: taken ? 'Phone number already exists' : '' })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send({ Message: "Internal server error", success: false })
+    }
+}
+
 export const CheckCnic = async (req, res) => {
     try {
         const { cnic } = req.body
@@ -536,6 +555,18 @@ export const UpdateProfileContact = async (req, res) => {
         }
 
         account.email = trimmedEmail;
+
+        if (trimmedPhone) {
+            const phoneDigits = trimmedPhone.replace(/[^0-9]/g, '');
+            if (phoneDigits.length >= 10) {
+                const last10 = phoneDigits.slice(-10);
+                const existingPhoneUser = await user.findOne({ phone: { $regex: `${last10}$` }, _id: { $ne: id } });
+                const existingPhoneProvider = await provider.findOne({ phone: { $regex: `${last10}$` }, _id: { $ne: id } });
+                if (existingPhoneUser || existingPhoneProvider) {
+                    return res.status(409).send({ Message: "Phone number already exists", success: false });
+                }
+            }
+        }
         account.phone = trimmedPhone;
 
         if (cnic && cnic.trim()) {
