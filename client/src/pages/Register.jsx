@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Container, Form, Button, Toast, ToastContainer, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { FiBriefcase, FiUser, FiMail, FiPhone, FiLock, FiEye, FiEyeOff, FiCheckCircle, FiCheck, FiX } from 'react-icons/fi';
+import { FiBriefcase, FiUser, FiMail, FiPhone, FiLock, FiEye, FiEyeOff, FiCheckCircle, FiCheck, FiX, FiTool } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../config/api';
 
@@ -255,7 +255,7 @@ const Register = () => {
                 onClick={() => setIsProvider(true)}
               >
                 <div className="role-card-icon-wrapper mx-auto">
-                  <FiBriefcase />
+                  <FiTool />
                 </div>
                 <h5 className="mb-0">Provider</h5>
                 {isProvider && <FiCheckCircle className="role-check" />}

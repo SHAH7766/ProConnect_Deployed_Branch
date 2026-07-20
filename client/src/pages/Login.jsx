@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Form, Button, Toast, ToastContainer } from 'react-bootstrap';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FiBriefcase, FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiCheckCircle } from 'react-icons/fi';
+import { FiBriefcase, FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiCheckCircle, FiTool } from 'react-icons/fi';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../config/api';
@@ -116,7 +116,7 @@ const Login = () => {
                 onClick={() => setIsProvider(true)}
               >
                 <div className="role-card-icon-wrapper mx-auto">
-                  <FiBriefcase />
+                  <FiTool />
                 </div>
                 <h5 className="mb-0">Provider</h5>
                 {isProvider && <FiCheckCircle className="role-check" />}
