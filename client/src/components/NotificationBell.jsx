@@ -6,10 +6,24 @@ import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 
 let audioCtx = null;
+let audioInitialized = false;
+
+const initAudio = () => {
+  if (audioInitialized) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Create silent buffer to unlock audio on mobile
+    const silent = audioCtx.createBufferSource();
+    silent.start(0);
+    audioInitialized = true;
+  } catch {
+    // Audio not supported
+  }
+};
 
 const playBeep = () => {
   try {
-    if (!audioCtx) {
+    if (!audioCtx || audioCtx.state === 'closed') {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
     if (audioCtx.state === 'suspended') {
@@ -29,6 +43,8 @@ const playBeep = () => {
   } catch {
     // Audio not supported
   }
+  // Vibrate on mobile as fallback
+  try { navigator.vibrate?.([100, 50, 100]); } catch {}
 };
 
 const TYPE_ICONS = {
@@ -207,7 +223,7 @@ const NotificationBell = () => {
       <div className="notification-bell-wrapper" ref={dropdownRef}>
         <button
           className="btn btn-link p-0 border-0 position-relative theme-toggle-btn"
-          onClick={() => setShowDropdown(!showDropdown)}
+          onClick={() => { initAudio(); setShowDropdown(!showDropdown); }}
           title="Notifications"
         >
           <FiBell size={20} />
