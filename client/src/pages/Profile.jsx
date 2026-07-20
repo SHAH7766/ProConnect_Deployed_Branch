@@ -28,9 +28,25 @@ const Profile = () => {
     );
 
 
+    const fetchProfile = useCallback(async () => {
+        try {
+            const res = await axios.get(`${baseURL}/api/profile`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            setData(res.data.profile);
+            setActivity(res.data.activity);
+            setProviderWarnings(res.data.providerWarnings || []);
+        } catch (err) {
+            console.error("Profile fetch error:", err);
+        } finally {
+            setLoading(false);
+        }
+    }, [baseURL, token]);
+
     useEffect(() => {
         fetchProfile();
-    }, [token]);
+    }, [fetchProfile]);
 
     useAutoRefresh(fetchProfile, 30000);
 
@@ -44,22 +60,6 @@ const Profile = () => {
 
         return () => clearInterval(intervalId);
     }, [data?._id]);
-
-    const fetchProfile = async () => {
-        try {
-            const { data } = await axios.get(`${baseURL}/api/profile`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            setData(data.profile);
-            setActivity(data.activity);
-            setProviderWarnings(data.providerWarnings || []);
-        } catch (err) {
-            console.error("Profile fetch error:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const fetchLatestChatMessages = async (userId) => {
         try {
@@ -118,7 +118,7 @@ const Profile = () => {
                             </div>
                             <div className="d-flex flex-column align-items-end gap-2">
                                 <Badge bg={data?.role === 'admin' ? 'danger' : data?.role === 'provider' ? 'success' : 'primary'}>
-                                    {data?.role.toUpperCase()}
+                                    {(data?.role || 'user').toUpperCase()}
                                 </Badge>
                                 <Button size="sm" variant="outline-primary" onClick={() => window.location.reload()} title="Refresh Profile" style={{ borderRadius: '50%', width: '36px', height: '36px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <FiRefreshCw />
