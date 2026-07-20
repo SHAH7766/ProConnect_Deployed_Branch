@@ -47,8 +47,8 @@ const provider=new mongoose.Schema({
     },
     charges:{
         type:Number,
-        default:0,
-        min:0,
+        default:200,
+        min:200,
         max:500
     },
     sandboxBankAccount:{

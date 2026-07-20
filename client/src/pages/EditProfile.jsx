@@ -248,7 +248,7 @@ const EditProfile = () => {
                                             </Col>
                                             <Col md={6}>
                                                 <div className="auth-input-group mb-0">
-                                                    <input type="number" min="0" max="500" name="charges" placeholder="CHARGES (RS)" max={500} value={contactForm.charges} onChange={handleContactChange} />
+                                                    <input type="number" min="200" max="500" name="charges" placeholder="CHARGES (RS)" value={contactForm.charges} onChange={handleContactChange} />
                                                 </div>
                                             </Col>
                                         </Row>

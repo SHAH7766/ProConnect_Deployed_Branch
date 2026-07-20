@@ -127,8 +127,8 @@ export const RegisterProvider = async (req, res) => {
         if (normalizedCategory && !['Plumber', 'Electronics', ''].includes(normalizedCategory))
             return res.status(400).send({ Message: "Please select a valid provider category", success: false })
         const providerCharges = charges ? Number(charges) : 0
-        if (charges && (!Number.isFinite(providerCharges) || providerCharges < 0))
-            return res.status(400).send({ Message: "Please enter valid provider charges", success: false })
+        if (charges && (!Number.isFinite(providerCharges) || providerCharges < 200))
+            return res.status(400).send({ Message: "Minimum charges are Rs. 200", success: false })
         if (providerCharges > 500)
             return res.status(400).send({ Message: "Maximum charges are Rs. 500", success: false })
         const trimmedBankAccountNumber = bankAccountNumber.trim()
@@ -577,6 +577,9 @@ export const UpdateProfileContact = async (req, res) => {
             }
             if (charges !== undefined) {
                 const chargeValue = Number(charges);
+                if (chargeValue < 200) {
+                    return res.status(400).send({ Message: "Minimum charges are Rs. 200", success: false });
+                }
                 if (chargeValue > 500) {
                     return res.status(400).send({ Message: "Maximum charges are Rs. 500", success: false });
                 }
