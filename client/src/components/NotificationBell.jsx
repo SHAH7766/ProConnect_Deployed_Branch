@@ -113,6 +113,23 @@ const NotificationBell = () => {
     }
   };
 
+  const handleDeleteNotification = async (id, e) => {
+    e.stopPropagation();
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_BASE_URL}/api/notifications/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotifications(prev => {
+        const removed = prev.find(n => n._id === id);
+        if (removed && !removed.isRead) setUnreadCount(c => Math.max(0, c - 1));
+        return prev.filter(n => n._id !== id);
+      });
+    } catch {
+      // silently ignore
+    }
+  };
+
   const handleNotificationClick = (notif) => {
     handleMarkRead(notif._id);
     setShowDropdown(false);
@@ -222,6 +239,13 @@ const NotificationBell = () => {
                           <FiCheck size={12} />
                         </button>
                       )}
+                      <button
+                        className="notification-delete"
+                        onClick={(e) => handleDeleteNotification(notif._id, e)}
+                        title="Dismiss"
+                      >
+                        <FiX size={12} />
+                      </button>
                     </div>
                   );
                 })

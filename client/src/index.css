@@ -3060,6 +3060,34 @@ a {
   color: white;
 }
 
+.notification-delete {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(219, 227, 239, 0.8);
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #94a3b8;
+  opacity: 0;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+  margin-top: 4px;
+  margin-left: 4px;
+}
+
+.notification-item:hover .notification-delete {
+  opacity: 1;
+}
+
+.notification-delete:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: white;
+}
+
 /* Notification Toast */
 .notification-toast {
   position: fixed;

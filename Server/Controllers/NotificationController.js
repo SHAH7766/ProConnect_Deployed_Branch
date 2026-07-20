@@ -52,6 +52,21 @@ export const MarkAllNotificationsRead = async (req, res) => {
     }
 };
 
+export const DeleteNotification = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { id: userId, role } = req.user;
+        const notif = await Notification.findOneAndDelete({ _id: id, recipientId: userId, recipientRole: role });
+        if (!notif) {
+            return res.status(404).send({ success: false, Message: "Notification not found" });
+        }
+        return res.send({ success: true });
+    } catch (error) {
+        console.error("Delete notification error:", error);
+        return res.status(500).send({ Message: "Internal server error", success: false });
+    }
+};
+
 export const GetUnreadCount = async (req, res) => {
     try {
         const { id, role } = req.user;
