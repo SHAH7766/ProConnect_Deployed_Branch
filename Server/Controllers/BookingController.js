@@ -1256,7 +1256,7 @@ export const AdjustBookingAmount = async (req, res) => {
         }
 
         // Can only adjust before work starts
-        if (booking.status !== 'Accepted') {
+        if (!['Accepted', 'Negotiation'].includes(booking.status)) {
             return res.status(400).send({ Message: "Amount can only be adjusted after provider accepts the booking and before starting work", success: false });
         }
 

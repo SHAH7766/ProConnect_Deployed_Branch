@@ -632,13 +632,13 @@ const MyBookings = () => {
                 <Button size="sm" variant="success" onClick={() => updateBookingStatus(booking._id, 'Accepted')}>Accept Offer</Button>
             )}
 
-            {/* 3. Adjust Amount - Provider can adjust after accepting (before work starts), customer can counteroffer */}
-            {profile?.role === 'provider' && booking.status === 'Accepted' && (
+            {/* 3. Adjust Amount / Counteroffer - available in Accepted or Negotiation (if you didn't make the last offer) */}
+            {profile?.role === 'provider' && ['Accepted', 'Negotiation'].includes(booking.status) && !didILastAdjust && (
                 <Button size="sm" variant="outline-primary" onClick={() => openAdjustAmountModal(booking, 'adjust')}>
                     Adjust Rate
                 </Button>
             )}
-            {profile?.role === 'user' && booking.status === 'Accepted' && (
+            {profile?.role === 'user' && ['Accepted', 'Negotiation'].includes(booking.status) && !didILastAdjust && (
                 <Button size="sm" variant="outline-primary" onClick={() => openAdjustAmountModal(booking, 'counteroffer')}>
                     Counteroffer
                 </Button>
