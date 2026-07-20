@@ -37,22 +37,34 @@ const Register = () => {
     number: false,
     special: false
   });
-  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [passwordChecking, setPasswordChecking] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState({ checking: false, available: null, message: '' });
   const debounceTimer = useRef(null);
+  const passwordCheckTimer = useRef(null);
 
   const baseURL = API_BASE_URL;
   const navigate = useNavigate();
 
   useEffect(() => {
     const { password } = formData;
-    setPasswordCriteria({
+    const criteria = {
       length: password.length >= 8,
       upper: /[A-Z]/.test(password),
       number: /\d/.test(password),
       special: /[@$!%*?&]/.test(password),
-    });
+    };
+    setPasswordCriteria(criteria);
+
+    if (password.length > 0) {
+      setPasswordChecking(true);
+      if (passwordCheckTimer.current) clearTimeout(passwordCheckTimer.current);
+      passwordCheckTimer.current = setTimeout(() => setPasswordChecking(false), 400);
+    } else {
+      setPasswordChecking(false);
+    }
   }, [formData.password]);
+
+  const allPasswordMet = passwordCriteria.length && passwordCriteria.upper && passwordCriteria.number && passwordCriteria.special;
 
   const checkUsername = useCallback(async (username) => {
     const sanitized = username.toString().trim().toLowerCase();
@@ -80,10 +92,6 @@ const Register = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-
-    if (name === 'password' && !passwordTouched) {
-      setPasswordTouched(true);
-    }
 
     if (name === 'username') {
       setUsernameStatus({ checking: false, available: null, message: '' });
@@ -228,45 +236,19 @@ const Register = () => {
                 onChange={handleChange}
                 required
               />
+              {formData.password.length > 0 && passwordChecking && (
+                <span className="auth-input-suffix" style={{ right: '44px' }}><span className="auth-spinner-sm" /></span>
+              )}
+              {!passwordChecking && formData.password.length > 0 && allPasswordMet && (
+                <span className="auth-input-suffix text-success" style={{ right: '44px' }}><FiCheck size={18} /></span>
+              )}
+              {!passwordChecking && formData.password.length > 0 && !allPasswordMet && (
+                <span className="auth-input-suffix text-danger" style={{ right: '44px' }}><FiX size={18} /></span>
+              )}
               <button type="button" className="auth-password-toggle" onClick={() => setShowPassword(!showPassword)}>
                 {showPassword ? <FiEyeOff /> : <FiEye />}
               </button>
             </motion.div>
-
-            {passwordTouched && (
-              <motion.div
-                variants={formItem}
-                className="password-criteria"
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25 }}
-              >
-                {[
-                  { key: 'length', label: '8+ Characters' },
-                  { key: 'upper', label: 'Uppercase' },
-                  { key: 'number', label: 'Number' },
-                  { key: 'special', label: 'Special Char' }
-                ].map((item) => {
-                  const met = passwordCriteria[item.key];
-                  const isLoading = formData.password.length > 0 && formData.password.length <= item.key.length && !met;
-                  return (
-                    <motion.div
-                      key={item.key}
-                      className={`criterion ${met ? 'valid' : 'invalid'}`}
-                      animate={met ? { scale: [1, 1.15, 1] } : {}}
-                      transition={{ duration: 0.3 }}
-                    >
-                      {met ? (
-                        <FiCheck className="text-success" size={14} />
-                      ) : (
-                        <FiX className="text-danger" size={14} />
-                      )}
-                      <span>{item.label}</span>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
-            )}
 
             <motion.div variants={formItem} className="auth-input-group mb-4">
               <FiLock className="auth-input-icon" />
