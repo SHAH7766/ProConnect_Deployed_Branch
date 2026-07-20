@@ -40,6 +40,7 @@ const MyBookings = () => {
     const [releasingPayment, setReleasingPayment] = useState(false);
     const [adjustingAmount, setAdjustingAmount] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
+    const [actionLoading, setActionLoading] = useState({});
     const [deletingAllBookings, setDeletingAllBookings] = useState(false);
     const [payingBookingId, setPayingBookingId] = useState('');
     const [reviewForm, setReviewForm] = useState({ rating: '5', comment: '' });
@@ -134,6 +135,8 @@ const MyBookings = () => {
             fetchBookings();
         } catch (err) {
             setToast({ show: true, message: err.response?.data?.Message || "Unable to update booking.", type: 'danger' });
+        } finally {
+            setActionLoading(prev => ({...prev, [`${bookingId}-accept`]: false}));
         }
     };
 
@@ -645,12 +648,18 @@ const MyBookings = () => {
         <div className="booking-card-actions">
             {/* 1. Request Actions - Provider can accept initial request */}
             {profile?.role === 'provider' && booking.status === 'Requested' && (
-                <Button size="sm" variant="primary" onClick={() => updateBookingStatus(booking._id, 'Accepted')}>Accept</Button>
+                <Button size="sm" variant="primary" disabled={actionLoading[`${booking._id}-accept`]} onClick={() => {
+                  setActionLoading(prev => ({...prev, [`${booking._id}-accept`]: true}));
+                  updateBookingStatus(booking._id, 'Accepted');
+                }}>{actionLoading[`${booking._id}-accept`] ? <><span className="auth-spinner" /> Accepting...</> : 'Accept'}</Button>
             )}
 
             {/* 2. Negotiation Accept - Anyone who didn't make the last offer can accept */}
             {booking.status === 'Negotiation' && !didILastAdjust && (
-                <Button size="sm" variant="success" onClick={() => updateBookingStatus(booking._id, 'Accepted')}>Accept Offer</Button>
+                <Button size="sm" variant="success" disabled={actionLoading[`${booking._id}-accept`]} onClick={() => {
+                  setActionLoading(prev => ({...prev, [`${booking._id}-accept`]: true}));
+                  updateBookingStatus(booking._id, 'Accepted');
+                }}>{actionLoading[`${booking._id}-accept`] ? <><span className="auth-spinner" /> Accepting...</> : 'Accept Offer'}</Button>
             )}
 
             {/* 3. Adjust Amount / Counteroffer - available in Accepted or Negotiation (if you didn't make the last offer) */}
@@ -688,18 +697,27 @@ const MyBookings = () => {
                 <Button size="sm" variant="outline-primary" onClick={() => openChat(booking)}><FiMessageCircle className="me-1" />Chat</Button>
             )}
             {booking.address?.mapUrl && ['Requested', 'Negotiation', 'Accepted', 'In-Progress'].includes(booking.status) && (
-                <Button as="a" href={booking.address.mapUrl} target="_blank" rel="noreferrer" size="sm" variant="outline-success">
-                    <FiMapPin className="me-1" /> Map
+                <Button as="a" href={booking.address.mapUrl} target="_blank" rel="noreferrer" size="sm" variant="outline-success"
+                  onClick={() => setActionLoading(prev => ({...prev, [`${booking._id}-map`]: true}))}>
+                  {actionLoading[`${booking._id}-map`] ? <><span className="auth-spinner" /></> : <><FiMapPin className="me-1" /> Map</>}
                 </Button>
             )}
             {booking.problemPhoto && (
-                <Button size="sm" variant="outline-secondary" onClick={() => openProblemPhoto(booking.problemPhoto, 'Problem Picture')}>
-                    <FiImage className="me-1" /> Photo
+                <Button size="sm" variant="outline-secondary" disabled={actionLoading[`${booking._id}-photo`]} onClick={() => {
+                  setActionLoading(prev => ({...prev, [`${booking._id}-photo`]: true}));
+                  openProblemPhoto(booking.problemPhoto, 'Problem Picture');
+                  setTimeout(() => setActionLoading(prev => ({...prev, [`${booking._id}-photo`]: false})), 300);
+                }}>
+                  {actionLoading[`${booking._id}-photo`] ? <><span className="auth-spinner" /></> : <><FiImage className="me-1" /> Photo</>}
                 </Button>
             )}
             {booking.completionPhoto && (
-                <Button size="sm" variant="outline-info" onClick={() => openProblemPhoto(booking.completionPhoto, 'Completion Proof')}>
-                    <FiImage className="me-1" /> Proof
+                <Button size="sm" variant="outline-info" disabled={actionLoading[`${booking._id}-proof`]} onClick={() => {
+                  setActionLoading(prev => ({...prev, [`${booking._id}-proof`]: true}));
+                  openProblemPhoto(booking.completionPhoto, 'Completion Proof');
+                  setTimeout(() => setActionLoading(prev => ({...prev, [`${booking._id}-proof`]: false})), 300);
+                }}>
+                  {actionLoading[`${booking._id}-proof`] ? <><span className="auth-spinner" /></> : <><FiImage className="me-1" /> Proof</>}
                 </Button>
             )}
 
