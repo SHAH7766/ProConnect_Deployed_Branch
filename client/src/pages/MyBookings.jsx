@@ -613,20 +613,34 @@ const MyBookings = () => {
         ? new Date(scheduledDate).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
         : 'N/A';
 
-    const renderBookingActions = (booking) => (
+    const renderBookingActions = (booking) => {
+        const lastHistoryEntry = booking.chargesHistory?.length > 0
+            ? booking.chargesHistory[booking.chargesHistory.length - 1]
+            : null;
+        const lastAdjusterId = lastHistoryEntry?.updatedBy?._id || lastHistoryEntry?.updatedBy;
+        const didILastAdjust = String(lastAdjusterId) === String(profile?._id);
+
+        return (
         <div className="booking-card-actions">
-            {/* 1. Request/Negotiation Actions */}
+            {/* 1. Request Actions - Provider can accept initial request */}
             {profile?.role === 'provider' && booking.status === 'Requested' && (
                 <Button size="sm" variant="primary" onClick={() => updateBookingStatus(booking._id, 'Accepted')}>Accept</Button>
             )}
-            {booking.status === 'Negotiation' && (!booking.chargesHistory || booking.chargesHistory.length === 0 || String(booking.chargesHistory[booking.chargesHistory.length - 1].updatedBy?._id || booking.chargesHistory[booking.chargesHistory.length - 1].updatedBy) !== String(profile?._id)) && (
+
+            {/* 2. Negotiation Accept - Anyone who didn't make the last offer can accept */}
+            {booking.status === 'Negotiation' && !didILastAdjust && (
                 <Button size="sm" variant="success" onClick={() => updateBookingStatus(booking._id, 'Accepted')}>Accept Offer</Button>
             )}
 
-            {/* 2. Adjust Amount (Negotiation phases) */}
-            {(profile?.role === 'provider' || profile?.role === 'user') && booking.status === 'Accepted' && (
-                <Button size="sm" variant="outline-primary" onClick={() => openAdjustAmountModal(booking, profile?.role === 'user' ? 'counteroffer' : 'adjust')}>
-                    Adjust
+            {/* 3. Adjust Amount - Provider can adjust after accepting (before work starts), customer can counteroffer */}
+            {profile?.role === 'provider' && booking.status === 'Accepted' && (
+                <Button size="sm" variant="outline-primary" onClick={() => openAdjustAmountModal(booking, 'adjust')}>
+                    Adjust Rate
+                </Button>
+            )}
+            {profile?.role === 'user' && booking.status === 'Accepted' && (
+                <Button size="sm" variant="outline-primary" onClick={() => openAdjustAmountModal(booking, 'counteroffer')}>
+                    Counteroffer
                 </Button>
             )}
 
@@ -638,8 +652,8 @@ const MyBookings = () => {
                 <Button size="sm" variant="success" onClick={() => openCompletionProof(booking)}>Complete Work</Button>
             )}
 
-            {/* 4. Payment Actions */}
-            {profile?.role === 'user' && booking.status === 'Accepted' && booking.paymentStatus !== 'Paid' && (
+            {/* 4. Payment Actions - Show when booking is Accepted or Negotiation and not yet paid */}
+            {profile?.role === 'user' && ['Accepted', 'Negotiation'].includes(booking.status) && booking.paymentStatus !== 'Paid' && (
                 <Button size="sm" variant="warning" onClick={() => startSafepayCheckout(booking._id)} disabled={payingBookingId === booking._id}>
                     Pay Now
                 </Button>
@@ -690,7 +704,7 @@ const MyBookings = () => {
             )}
 
             {/* Status Badges */}
-            {profile?.role === 'provider' && booking.status === 'Accepted' && !['Paid', 'Released'].includes(booking.paymentStatus) && (
+            {profile?.role === 'provider' && ['Accepted', 'Negotiation'].includes(booking.status) && !['Paid', 'Released'].includes(booking.paymentStatus) && (
                 <Badge bg="secondary" className="align-self-center">Waiting for payment</Badge>
             )}
             {booking.status === 'Completed' && booking.customerCompletionConfirmed && (
@@ -700,7 +714,8 @@ const MyBookings = () => {
                 <Badge bg="secondary" className="align-self-center">Waiting for customer</Badge>
             )}
         </div>
-    );
+        );
+    };
 
     return (
         <div className="booking-app-screen">

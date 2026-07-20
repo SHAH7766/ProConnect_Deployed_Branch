@@ -586,6 +586,22 @@ export const GetMyBookings = async (req, res) => {
     }
 };
 
+export const GetPendingBookingCount = async (req, res) => {
+    try {
+        if (req.user.role !== 'provider') {
+            return res.status(200).send({ count: 0 });
+        }
+        const count = await Booking.countDocuments({
+            providerId: req.user.id,
+            status: 'Requested'
+        });
+        return res.status(200).send({ count });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send({ count: 0 });
+    }
+};
+
 export const GetLatestIncomingChatMessages = async (req, res) => {
     try {
         const filter = req.user.role === 'provider'
@@ -834,7 +850,7 @@ export const CreateSafepayCheckout = async (req, res) => {
             return res.status(403).send({ Message: "Only the customer can pay for this booking", success: false });
         }
 
-        if (booking.status !== 'Accepted') {
+        if (!['Accepted', 'Negotiation'].includes(booking.status)) {
             return res.status(400).send({ Message: "Payment is available after provider accepts the booking", success: false });
         }
 

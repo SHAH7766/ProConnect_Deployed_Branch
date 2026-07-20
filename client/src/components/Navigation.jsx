@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Navbar, Nav, Container, NavDropdown } from 'react-bootstrap';
+import { Navbar, Nav, Container, NavDropdown, Badge } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiAlertTriangle, FiBriefcase, FiCalendar, FiEdit, FiLogOut, FiUser, FiSearch, FiMoon, FiSun } from 'react-icons/fi';
+import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 const Navigation = () => {
   const navigate = useNavigate();
   const isLoggedIn = localStorage.getItem('token');
   const userRole = localStorage.getItem('role');
   const canViewComplaints = userRole === 'user';
+  const isProvider = userRole === 'provider';
 
   const [isDarkMode, setIsDarkMode] = useState(
     localStorage.getItem('theme') === 'dark' ||
     (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)
   );
   const [scrolled, setScrolled] = useState(false);
+  const [pendingBookings, setPendingBookings] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
@@ -31,12 +35,39 @@ const Navigation = () => {
     }
   }, [isDarkMode]);
 
+  // Poll for pending bookings (providers only)
+  useEffect(() => {
+    if (!isLoggedIn || !isProvider) return;
+
+    const fetchPendingCount = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const { data } = await axios.get(`${API_BASE_URL}/api/bookings/pending-count`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setPendingBookings(data.count || 0);
+      } catch (err) {
+        // Silently ignore - will retry on next interval
+      }
+    };
+
+    fetchPendingCount();
+    const interval = setInterval(fetchPendingCount, 30000); // every 30 seconds
+    return () => clearInterval(interval);
+  }, [isLoggedIn, isProvider]);
+
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     navigate('/login');
+  };
+
+  const handleAccountClick = () => {
+    if (isProvider && pendingBookings > 0) {
+      setPendingBookings(0); // Clear badge when clicked
+    }
   };
 
   return (
@@ -65,7 +96,20 @@ const Navigation = () => {
               <FiSearch size={20} />
             </button>
             {isLoggedIn ? (
-              <NavDropdown title="Account" align="end" className="account-dropdown">
+              <NavDropdown
+                title={
+                  <span onClick={handleAccountClick}>
+                    Account
+                    {isProvider && pendingBookings > 0 && (
+                      <Badge bg="danger" pill className="ms-1" style={{ fontSize: '0.65rem', verticalAlign: 'top' }}>
+                        {pendingBookings}
+                      </Badge>
+                    )}
+                  </span>
+                }
+                align="end"
+                className="account-dropdown"
+              >
                 <NavDropdown.Item as={Link} to="/profile">
                   <FiUser className="me-2" />
                   {userRole === 'provider' ? 'Dashboard' : 'Profile'}
@@ -77,6 +121,11 @@ const Navigation = () => {
                 <NavDropdown.Item as={Link} to="/my-bookings">
                   <FiCalendar className="me-2" />
                   My Bookings
+                  {isProvider && pendingBookings > 0 && (
+                    <Badge bg="danger" pill className="ms-2" style={{ fontSize: '0.65rem' }}>
+                      {pendingBookings} new
+                    </Badge>
+                  )}
                 </NavDropdown.Item>
                 {canViewComplaints && (
                   <NavDropdown.Item as={Link} to="/complain">

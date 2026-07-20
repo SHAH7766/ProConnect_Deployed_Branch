@@ -1,5 +1,5 @@
 import express from 'express'
-import { CompleteBookingWithProof, ConfirmSafepayPayment, CreateBooking, CreateSafepayCheckout, DeleteAllBookings, DeleteBookingRequest, GetBookingMessages, GetLatestIncomingChatMessages, GetMyBookings, GetProviderDetails, ReviewBooking, SearchProviders, SendBookingMessage, UpdateBookingStatus, AdjustBookingAmount, DeclineBookingRequest } from "../Controllers/BookingController.js"
+import { CompleteBookingWithProof, ConfirmSafepayPayment, CreateBooking, CreateSafepayCheckout, DeleteAllBookings, DeleteBookingRequest, GetBookingMessages, GetLatestIncomingChatMessages, GetMyBookings, GetPendingBookingCount, GetProviderDetails, ReviewBooking, SearchProviders, SendBookingMessage, UpdateBookingStatus, AdjustBookingAmount, DeclineBookingRequest } from "../Controllers/BookingController.js"
 import { VerifyToken } from "../Middleware/validator.js"
 import { upload, uploadAudio } from "../Middleware/upload.js"
 
@@ -19,6 +19,7 @@ BookingRouter.get("/providers/search", SearchProviders)
 BookingRouter.get("/providers/:id", GetProviderDetails)
 BookingRouter.post("/bookings", VerifyToken, handleUploadError(upload.single('problemPhoto')), CreateBooking)
 BookingRouter.get("/mybookings", VerifyToken, GetMyBookings)
+BookingRouter.get("/bookings/pending-count", VerifyToken, GetPendingBookingCount)
 BookingRouter.get("/bookings/chat/latest", VerifyToken, GetLatestIncomingChatMessages)
 BookingRouter.delete("/bookings", VerifyToken, DeleteAllBookings)
 BookingRouter.delete("/bookings/:id", VerifyToken, DeleteBookingRequest)
