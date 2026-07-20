@@ -697,9 +697,8 @@ const MyBookings = () => {
                 <Button size="sm" variant="outline-primary" onClick={() => openChat(booking)}><FiMessageCircle className="me-1" />Chat</Button>
             )}
             {booking.address?.mapUrl && ['Requested', 'Negotiation', 'Accepted', 'In-Progress'].includes(booking.status) && (
-                <Button as="a" href={booking.address.mapUrl} target="_blank" rel="noreferrer" size="sm" variant="outline-success"
-                  onClick={() => setActionLoading(prev => ({...prev, [`${booking._id}-map`]: true}))}>
-                  {actionLoading[`${booking._id}-map`] ? <><span className="auth-spinner" /></> : <><FiMapPin className="me-1" /> Map</>}
+                <Button as="a" href={booking.address.mapUrl} target="_blank" rel="noreferrer" size="sm" variant="outline-success">
+                  <FiMapPin className="me-1" /> Map
                 </Button>
             )}
             {booking.problemPhoto && (
