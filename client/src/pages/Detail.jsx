@@ -135,30 +135,35 @@ const Detail = () => {
 
   const handleRequest = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
 
     if (!token) {
+      setSubmitting(false);
       navigate('/login');
       return;
     }
     if (!form.scheduledDate) {
+      setSubmitting(false);
       setToast({ show: true, message: 'Please select a date.', type: 'danger' });
       return;
     }
     if (!form.selectedService) {
+      setSubmitting(false);
       setToast({ show: true, message: 'Please select a service type.', type: 'danger' });
       return;
     }
     if (!form.latitude || !form.longitude) {
+      setSubmitting(false);
       setToast({ show: true, message: 'Please add your Google Maps location before sending request.', type: 'danger' });
       return;
     }
     if (!form.problemPhoto && !form.problemPhotoFile) {
+      setSubmitting(false);
       setToast({ show: true, message: 'Please upload an object or problem picture.', type: 'danger' });
       return;
     }
 
     try {
-      setSubmitting(true);
       const payload = new FormData();
       payload.append('providerId', provider._id);
       payload.append('serviceCategory', form.selectedService);
@@ -537,19 +542,19 @@ const Detail = () => {
                 <span>Request will be sent to the provider for acceptance</span>
               </div>
               
-              <Button 
-                type="submit" 
-                className="btn-primary-custom w-100 submit-button" 
+              <Button
+                type="submit"
+                className="btn-primary-custom w-100 submit-button d-flex align-items-center justify-content-center gap-2"
                 disabled={submitting}
               >
                 {submitting ? (
                   <>
-                    <span className="spinner-border spinner-border-sm me-2"></span>
-                    Sending...
+                    <span className="auth-spinner" />
+                    Sending Request...
                   </>
                 ) : (
                   <>
-                    <FiSend className="me-2" />
+                    <FiSend size={16} />
                     Send Request
                   </>
                 )}
