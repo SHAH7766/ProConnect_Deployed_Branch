@@ -79,7 +79,7 @@ const Home = () => {
                           if (token) {
                               navigate('/providers');
                           } else {
-                              navigate('/register');
+                              navigate('/login');
                           }
                       }}
                   >
