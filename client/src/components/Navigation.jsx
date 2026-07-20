@@ -78,7 +78,10 @@ const Navigation = () => {
           <img src="/logo.jpg" alt="ProConnect Logo" style={{ height: '36px', width: '36px', borderRadius: '50%' }} />
           ProConnect
         </Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <div className="d-flex align-items-center gap-2">
+          {isLoggedIn && <NotificationBell />}
+          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        </div>
         <Navbar.Collapse id="basic-navbar-nav">
           {userRole !== 'provider' && (
             <Nav className="mx-auto gap-4">
