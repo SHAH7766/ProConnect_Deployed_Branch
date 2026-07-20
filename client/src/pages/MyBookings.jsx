@@ -38,7 +38,7 @@ const MyBookings = () => {
     const [submittingReview, setSubmittingReview] = useState(false);
     const [submittingCompletion, setSubmittingCompletion] = useState(false);
     const [releasingPayment, setReleasingPayment] = useState(false);
-    const [adjustingAmount, setAdjustingAmount] = useState(false);
+    const [deletingId, setDeletingId] = useState(null);
     const [deletingAllBookings, setDeletingAllBookings] = useState(false);
     const [payingBookingId, setPayingBookingId] = useState('');
     const [reviewForm, setReviewForm] = useState({ rating: '5', comment: '' });
@@ -329,6 +329,22 @@ const MyBookings = () => {
             fetchBookings();
         } catch (err) {
             setToast({ show: true, message: err.response?.data?.Message || "Unable to decline booking.", type: 'danger' });
+        }
+    };
+
+    const deleteBookingRequest = async (bookingId) => {
+        if (!window.confirm('Delete this booking request? This cannot be undone.')) return;
+        setDeletingId(bookingId);
+        try {
+            const { data } = await axios.delete(`${baseURL}/api/bookings/${bookingId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setToast({ show: true, message: data.Message, type: 'success' });
+            fetchBookings();
+        } catch (err) {
+            setToast({ show: true, message: err.response?.data?.Message || "Unable to delete booking.", type: 'danger' });
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -691,7 +707,9 @@ const MyBookings = () => {
                 <Button size="sm" variant="success" onClick={() => confirmCustomerCompletion(booking._id)}>Work Completed</Button>
             )}
             {profile?.role === 'user' && ['Requested', 'Negotiation'].includes(booking.status) && (
-                <Button size="sm" variant="outline-danger" onClick={() => deleteBookingRequest(booking._id)}><FiTrash2 className="me-1" /> Decline</Button>
+                <Button size="sm" variant="outline-danger" disabled={deletingId === booking._id} onClick={() => deleteBookingRequest(booking._id)}>
+                    {deletingId === booking._id ? <><span className="auth-spinner" /> Deleting...</> : <><FiTrash2 className="me-1" /> Delete</>}
+                </Button>
             )}
             {profile?.role === 'user' && booking.providerId?._id && booking.status === 'Completed' && (
                 <Button size="sm" variant="outline-danger" onClick={() => navigate('/complain', { state: { providerId: booking.providerId._id, providerName: booking.providerId.name, bookingId: booking._id, serviceCategory: booking.serviceCategory } })}>
@@ -702,9 +720,11 @@ const MyBookings = () => {
                 <Button size="sm" variant="outline-warning" onClick={() => openReview(booking)}><FiStar className="me-1" /> Review</Button>
             )}
 
-            {/* 7. Provider Specific Decline */}
+            {/* 7. Provider can also delete */}
             {profile?.role === 'provider' && ['Requested', 'Negotiation'].includes(booking.status) && (
-                <Button size="sm" variant="outline-danger" onClick={() => deleteBookingRequest(booking._id)}><FiTrash2 className="me-1" /> Decline</Button>
+                <Button size="sm" variant="outline-danger" disabled={deletingId === booking._id} onClick={() => deleteBookingRequest(booking._id)}>
+                    {deletingId === booking._id ? <><span className="auth-spinner" /> Deleting...</> : <><FiTrash2 className="me-1" /> Delete</>}
+                </Button>
             )}
 
             {/* Status Badges */}
