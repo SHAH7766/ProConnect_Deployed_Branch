@@ -5,6 +5,24 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 
+const playBeep = () => {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3);
+  } catch {
+    // Audio not supported
+  }
+};
+
 const TYPE_ICONS = {
   new_booking: FiBell,
   booking_accepted: FiCheckCircle,
@@ -47,6 +65,7 @@ const NotificationBell = () => {
         if (prevCount > 0 && newCount > prevCount && data.notifications?.length > 0) {
           const latest = data.notifications[0];
           if (!latest.isRead) {
+            playBeep();
             setToastNotif(latest);
             if (toastTimer.current) clearTimeout(toastTimer.current);
             toastTimer.current = setTimeout(() => setToastNotif(null), 5000);

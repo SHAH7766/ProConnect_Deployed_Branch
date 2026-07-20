@@ -79,6 +79,7 @@ const Navigation = () => {
           ProConnect
         </Navbar.Brand>
         <div className="d-flex align-items-center gap-2">
+          {isLoggedIn && <NotificationBell />}
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
         </div>
         <Navbar.Collapse id="basic-navbar-nav">
@@ -92,7 +93,6 @@ const Navigation = () => {
             </Nav>
           )}
           <Nav className="ms-auto align-items-center gap-3 mt-3 mt-lg-0">
-            {isLoggedIn && <NotificationBell />}
             <button className="btn btn-link p-0 border-0 me-2 theme-toggle-btn" onClick={toggleTheme}>
               {isDarkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
             </button>
