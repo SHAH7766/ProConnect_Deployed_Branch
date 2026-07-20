@@ -209,7 +209,7 @@ const Register = () => {
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {loading ? 'Creating Account...' : 'Create Account'}
+                {loading ? <><span className="auth-spinner" /> Creating Account...</> : 'Create Account'}
               </motion.button>
             </motion.div>
 

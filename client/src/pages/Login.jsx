@@ -162,7 +162,7 @@ const Login = () => {
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {loading ? 'Signing In...' : 'Sign In'}
+                {loading ? <><span className="auth-spinner" /> Signing In...</> : 'Sign In'}
               </motion.button>
             </motion.div>
 

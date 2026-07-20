@@ -3214,6 +3214,27 @@ a {
   background-color: #1d4ed8;
 }
 
+.auth-btn-primary:disabled {
+  opacity: 0.85;
+  cursor: not-allowed;
+}
+
+.auth-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: auth-spin 0.6s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes auth-spin {
+  to { transform: rotate(360deg); }
+}
+
 .auth-bottom-link {
   text-align: center;
   margin-top: 32px;
