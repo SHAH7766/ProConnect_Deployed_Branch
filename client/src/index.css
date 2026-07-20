@@ -3222,6 +3222,10 @@ a {
   color: #10b981;
 }
 
+.criterion.invalid {
+  color: #ef4444;
+}
+
 .auth-btn-primary {
   width: 100%;
   padding: 14px;

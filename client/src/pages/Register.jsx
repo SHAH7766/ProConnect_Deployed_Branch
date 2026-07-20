@@ -37,6 +37,7 @@ const Register = () => {
     number: false,
     special: false
   });
+  const [passwordTouched, setPasswordTouched] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState({ checking: false, available: null, message: '' });
   const debounceTimer = useRef(null);
 
@@ -79,6 +80,10 @@ const Register = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'password' && !passwordTouched) {
+      setPasswordTouched(true);
+    }
 
     if (name === 'username') {
       setUsernameStatus({ checking: false, available: null, message: '' });
@@ -228,20 +233,40 @@ const Register = () => {
               </button>
             </motion.div>
 
-            <motion.div variants={formItem} className="password-criteria">
-              {['length', 'upper', 'number', 'special'].map((key, i) => (
-                <motion.div
-                  key={key}
-                  className={`criterion ${passwordCriteria[key] ? 'valid' : ''}`}
-                  animate={passwordCriteria[key] ? { scale: [1, 1.2, 1], color: '#10b981' } : {}}
-                  transition={{ duration: 0.3 }}
-                >
-                  {passwordCriteria[key] ? <FiCheckCircle /> : '○'} {
-                    { length: '8+ Characters', upper: 'Uppercase', number: 'Number', special: 'Special Char' }[key]
-                  }
-                </motion.div>
-              ))}
-            </motion.div>
+            {passwordTouched && (
+              <motion.div
+                variants={formItem}
+                className="password-criteria"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+              >
+                {[
+                  { key: 'length', label: '8+ Characters' },
+                  { key: 'upper', label: 'Uppercase' },
+                  { key: 'number', label: 'Number' },
+                  { key: 'special', label: 'Special Char' }
+                ].map((item) => {
+                  const met = passwordCriteria[item.key];
+                  const isLoading = formData.password.length > 0 && formData.password.length <= item.key.length && !met;
+                  return (
+                    <motion.div
+                      key={item.key}
+                      className={`criterion ${met ? 'valid' : 'invalid'}`}
+                      animate={met ? { scale: [1, 1.15, 1] } : {}}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {met ? (
+                        <FiCheck className="text-success" size={14} />
+                      ) : (
+                        <FiX className="text-danger" size={14} />
+                      )}
+                      <span>{item.label}</span>
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            )}
 
             <motion.div variants={formItem} className="auth-input-group mb-4">
               <FiLock className="auth-input-icon" />
