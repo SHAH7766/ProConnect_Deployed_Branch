@@ -98,17 +98,23 @@ const EditProfile = () => {
             return;
         }
         setPhoneStatus(prev => ({ ...prev, checking: true }));
+        const myId = data?._id;
+        const myRole = data?.role;
         try {
-            const { data } = await axios.post(`${baseURL}/api/check-phone`, { phone: phoneValue });
+            const res = await axios.post(`${baseURL}/api/check-phone`, {
+                phone: phoneValue,
+                excludeId: myId || undefined,
+                role: myRole || undefined
+            });
             setPhoneStatus({
                 checking: false,
-                available: data.available,
-                message: data.message
+                available: res.data.available,
+                message: res.data.available ? '' : 'Phone number already exists'
             });
         } catch {
             setPhoneStatus({ checking: false, available: null, message: '' });
         }
-    }, [baseURL]);
+    }, [baseURL, data]);
 
     const checkCnic = useCallback(async (cnicValue) => {
         const digits = cnicValue.replace(/[^0-9]/g, '');

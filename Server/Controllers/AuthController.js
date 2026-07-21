@@ -405,15 +405,20 @@ export const CheckEmail = async (req, res) => {
 
 export const CheckPhone = async (req, res) => {
     try {
-        const { phone, excludeId } = req.body
+        const { phone, excludeId, role } = req.body
         const digits = phone ? String(phone).replace(/[^0-9]/g, '') : ''
         if (!digits || digits.length < 10) {
             return res.send({ available: false, message: 'Phone number must have at least 10 digits' })
         }
         const last10 = digits.slice(-10)
-        const query = { phone: { $regex: `${last10}$` } }
-        const userMatch = await user.findOne(query).select('_id')
-        const providerMatch = await provider.findOne(query).select('_id')
+        const userQuery = { phone: { $regex: `${last10}$` } }
+        const providerQuery = { phone: { $regex: `${last10}$` } }
+        if (excludeId) {
+            if (!role || role !== 'provider') userQuery._id = { $ne: excludeId }
+            if (role === 'provider') providerQuery._id = { $ne: excludeId }
+        }
+        const userMatch = await user.findOne(userQuery).select('_id')
+        const providerMatch = await provider.findOne(providerQuery).select('_id')
         const taken = !!(userMatch || providerMatch)
         return res.send({ available: !taken, message: taken ? 'Phone number already exists' : '' })
     } catch (error) {
