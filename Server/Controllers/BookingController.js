@@ -1523,6 +1523,32 @@ export const DeclineBookingRequest = async (req, res) => {
         });
         await booking.save();
 
+        const declinedBy = isCustomerOwner ? 'Customer' : 'Provider';
+        const bookingForNotif = await Booking.findById(booking._id).populate('customerId', 'name').populate('providerId', 'name');
+
+        // Notify customer
+        if (bookingForNotif?.customerId) {
+            createNotification({
+                recipientId: bookingForNotif.customerId._id, recipientRole: 'user',
+                type: 'booking_declined', title: `${declinedBy === 'Provider' ? 'Offer Declined' : 'You Declined'} ❌`,
+                message: declinedBy === 'Provider'
+                    ? `${bookingForNotif.providerId?.name || 'The provider'} has declined the offer for ${booking.serviceCategory} — waiting for a new offer.`
+                    : `You declined the offer for ${booking.serviceCategory}. The provider can send a new offer.`,
+                bookingId: booking._id
+            });
+        }
+        // Notify provider
+        if (bookingForNotif?.providerId) {
+            createNotification({
+                recipientId: bookingForNotif.providerId._id, recipientRole: 'provider',
+                type: 'booking_declined', title: `${declinedBy === 'Customer' ? 'Offer Declined' : 'You Declined'} ❌`,
+                message: declinedBy === 'Customer'
+                    ? `${bookingForNotif.customerId?.name || 'The customer'} has declined the offer for ${booking.serviceCategory} — waiting for a new offer.`
+                    : `You declined the offer for ${booking.serviceCategory}. The customer can send a new offer.`,
+                bookingId: booking._id
+            });
+        }
+
         return res.status(200).send({ Message: "Booking request declined, waiting for new offer.", success: true });
     } catch (error) {
         console.log(error);
