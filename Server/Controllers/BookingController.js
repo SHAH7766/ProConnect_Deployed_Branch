@@ -748,7 +748,8 @@ export const UpdateBookingStatus = async (req, res) => {
         let paymentReleaseWebhookPayload = null;
         let responseMessage = "Booking updated successfully";
 
-        const statusBecameAccepted = status === 'Accepted' && booking.status !== 'Accepted';
+        const previousBookingStatus = booking.status;
+        const statusBecameAccepted = status === 'Accepted' && previousBookingStatus !== 'Accepted';
 
         if (status) booking.status = status;
         if (customerCompletionConfirmed !== undefined) {
@@ -810,7 +811,7 @@ export const UpdateBookingStatus = async (req, res) => {
         const customer = populatedBooking?.customerId;
         const providerProfile = populatedBooking?.providerId;
 
-        if (status && status !== booking.status) {
+        if (status && status !== previousBookingStatus) {
             const statusNotifications = {
                 'Accepted': {
                     customerMsg: `Your booking has been accepted by ${providerProfile?.name || 'the provider'}`,
@@ -925,6 +926,15 @@ export const CompleteBookingWithProof = async (req, res) => {
                 customerName: bookingForEmail.customerId.name || 'Customer',
                 providerName: bookingForEmail.providerId?.name || 'Provider',
                 serviceCategory: bookingForEmail.serviceCategory
+            });
+        }
+        // Notify customer in-app that work is completed
+        if (bookingForEmail?.customerId) {
+            createNotification({
+                recipientId: bookingForEmail.customerId._id, recipientRole: 'user',
+                type: 'booking_completed', title: 'Work Completed ✅',
+                message: `${bookingForEmail.providerId?.name || 'The provider'} has marked the work as completed. Please review and confirm.`,
+                bookingId: bookingForEmail._id
             });
         }
 
@@ -1375,6 +1385,15 @@ export const ReviewBooking = async (req, res) => {
         await Provider.findByIdAndUpdate(booking.providerId, {
             ratingAverage: stats[0] ? Number(stats[0].average.toFixed(1)) : 0,
             ratingCount: stats[0]?.count || 0
+        });
+
+        // Notify provider about the review
+        const starRating = '⭐'.repeat(numericRating) + '☆'.repeat(5 - numericRating);
+        createNotification({
+            recipientId: booking.providerId, recipientRole: 'provider',
+            type: 'booking_completed', title: 'New Review ✨',
+            message: `${req.user.name || 'Customer'} rated you ${numericRating}/5 ${starRating}${comment.trim() ? ` — "${comment.trim().slice(0, 100)}"` : ''}.`,
+            bookingId: booking._id
         });
 
         return res.status(201).send({ Message: "Review submitted successfully", review, success: true });

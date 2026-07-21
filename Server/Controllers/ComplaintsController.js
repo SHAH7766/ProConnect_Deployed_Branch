@@ -2,6 +2,7 @@ import Complaint from "../Model/Complaint.js";
 import Booking from "../Model/Booking.js";
 import Provider from "../Model/Provider.js";
 import { sendN8nEmail } from "../utils/N8nMailer.js";
+import { createNotification } from "./NotificationController.js";
 
 const isAdmin = (req) => req.user?.role === 'admin';
 const canUseComplaintForm = (req) => ['user', 'admin'].includes(req.user?.role);
@@ -79,6 +80,16 @@ export const CustomerService = async (req, res) => {
             console.log('📧 Complaint webhook response status:', response.status);
         } catch (webhookError) {
             console.error('📧 Complaint webhook error:', webhookError.message);
+        }
+
+        // Notify provider in-app about the complaint
+        if (provider) {
+            createNotification({
+                recipientId: provider._id, recipientRole: 'provider',
+                type: 'booking_cancelled', title: 'Complaint Received ⚠️',
+                message: `A complaint "${TypeOfComplaint}" has been filed against you${complainedBooking?.customerId?.name ? ` by ${complainedBooking.customerId.name}` : ''}.`,
+                bookingId: bookingId || undefined
+            });
         }
 
         // Count complaints against this provider
