@@ -44,19 +44,8 @@ const Home = () => {
   const successCount = useCounter(98, 2000);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-      try {
-        const { data } = await axios.get(`${baseURL}/api/profile`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setData(data.profile);
-      } catch (err) {
-        console.error("Profile fetch error:", err);
-      }
-    };
-    fetchProfile();
+    const token = localStorage.getItem("token");
+    if (!token) return;
   }, []);
 
 
