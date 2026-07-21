@@ -831,11 +831,12 @@ export const UpdateBookingStatus = async (req, res) => {
                 }
             };
             const notif = statusNotifications[status];
+            const notifType = status === 'In-Progress' ? 'booking_in_progress' : `booking_${status.toLowerCase()}`;
             if (notif?.customerMsg && customer) {
-                createNotification({ recipientId: customer._id, recipientRole: 'user', type: `booking_${status.toLowerCase()}`, title: 'Booking Updated', message: notif.customerMsg, bookingId: booking._id });
+                createNotification({ recipientId: customer._id, recipientRole: 'user', type: notifType, title: 'Booking Updated', message: notif.customerMsg, bookingId: booking._id });
             }
             if (notif?.providerMsg && providerProfile) {
-                createNotification({ recipientId: providerProfile._id, recipientRole: 'provider', type: `booking_${status.toLowerCase()}`, title: 'Booking Updated', message: notif.providerMsg, bookingId: booking._id });
+                createNotification({ recipientId: providerProfile._id, recipientRole: 'provider', type: notifType, title: 'Booking Updated', message: notif.providerMsg, bookingId: booking._id });
             }
         }
 
