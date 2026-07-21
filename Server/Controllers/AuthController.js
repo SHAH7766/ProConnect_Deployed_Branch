@@ -638,8 +638,15 @@ export const UpdateProfileContact = async (req, res) => {
             }
 
             const { city, area } = req.body.location || {};
+
+            // Initialize location subdocument if needed
+            if (!account.location || typeof account.location !== 'object') {
+                account.location = {};
+            }
             if (city !== undefined) account.location.city = city;
             if (area !== undefined) account.location.area = area;
+            // Explicitly mark location as modified for Mongoose
+            account.markModified('location');
         }
 
         await account.save();
