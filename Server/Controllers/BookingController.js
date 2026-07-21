@@ -1059,13 +1059,22 @@ export const ConfirmSafepayPayment = async (req, res) => {
         if (SAFEPAY_SUCCESS_STATES.has(state)) {
             booking.paymentStatus = 'Paid';
             booking.safepay.paidAt = new Date();
-            
-            const bookingForEmail = await Booking.findById(booking._id).populate('providerId', 'email').populate('customerId', 'name');
+
+            const bookingForEmail = await Booking.findById(booking._id).populate('providerId', 'email name').populate('customerId', 'name');
             if (bookingForEmail?.providerId?.email) {
                 sendPaymentReceivedNotification(bookingForEmail.providerId.email, {
                     customerName: bookingForEmail.customerId?.name || 'Customer',
                     serviceCategory: bookingForEmail.serviceCategory,
                     charges: bookingForEmail.charges
+                });
+            }
+            // Notify provider in-app about payment received
+            if (bookingForEmail?.providerId) {
+                createNotification({
+                    recipientId: bookingForEmail.providerId._id, recipientRole: 'provider',
+                    type: 'payment_paid', title: 'Payment Received',
+                    message: `${bookingForEmail.customerId?.name || 'Customer'} has paid Rs. ${bookingForEmail.charges} for the booking.`,
+                    bookingId: bookingForEmail._id
                 });
             }
         }

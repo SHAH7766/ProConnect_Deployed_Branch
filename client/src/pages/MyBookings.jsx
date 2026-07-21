@@ -136,7 +136,7 @@ const MyBookings = () => {
         } catch (err) {
             setToast({ show: true, message: err.response?.data?.Message || "Unable to update booking.", type: 'danger' });
         } finally {
-            setActionLoading(prev => ({...prev, [`${bookingId}-accept`]: false}));
+            setActionLoading(prev => ({...prev, [`${bookingId}-accept`]: false, [`${bookingId}-start`]: false}));
         }
     };
 
@@ -676,7 +676,10 @@ const MyBookings = () => {
 
             {/* 3. Provider Workflow Actions */}
             {profile?.role === 'provider' && booking.status === 'Accepted' && (
-                <Button size="sm" variant="primary" onClick={() => updateBookingStatus(booking._id, 'In-Progress')}>Start</Button>
+                <Button size="sm" variant="primary" disabled={actionLoading[`${booking._id}-start`]} onClick={() => {
+                  setActionLoading(prev => ({...prev, [`${booking._id}-start`]: true}));
+                  updateBookingStatus(booking._id, 'In-Progress');
+                }}>{actionLoading[`${booking._id}-start`] ? <><span className="auth-spinner" /> Starting...</> : 'Start'}</Button>
             )}
             {profile?.role === 'provider' && booking.status === 'In-Progress' && (
                 <Button size="sm" variant="success" onClick={() => openCompletionProof(booking)}>Complete Work</Button>
