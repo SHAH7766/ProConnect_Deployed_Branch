@@ -188,12 +188,14 @@ export const RegisterProvider = async (req, res) => {
             return res.send({ Message: "Failed to register", success: false })
     } catch (error) {
         console.error("Provider registration error:", error)
-        const message = error?.name === 'ValidationError'
-            ? `Validation error: ${Object.values(error.errors || {}).map(e => e.message).join(', ')}`
-            : error?.code === 11000
-                ? 'A user with this email or CNIC already exists'
-                : error?.message || "Error occurred"
-        return res.send({ Message: message, success: false })
+        console.error("Error name:", error?.constructor?.name)
+        console.error("Error message:", error?.message)
+        console.error("Error code:", error?.code)
+        if (error?.name === 'ValidationError') {
+            console.error("Validation errors:", JSON.stringify(error.errors))
+            return res.send({ Message: `Validation error: ${Object.values(error.errors || {}).map(e => e.message).join(', ')}`, success: false })
+        }
+        return res.send({ Message: `Error: ${error?.message || error?.constructor?.name || 'Unknown'}`, success: false })
     }
 
 }
