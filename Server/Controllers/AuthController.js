@@ -162,7 +162,7 @@ export const RegisterProvider = async (req, res) => {
             role: 'provider',
             experience: experience || '',
             category: normalizedCategory,
-            charges: providerCharges,
+            charges: providerCharges || 200,
             completionRate: 70,
             isActive: false,
             sandboxBankAccount: {
