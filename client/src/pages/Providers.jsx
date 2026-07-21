@@ -82,7 +82,7 @@ const Providers = () => {
     if (clientLocation) {
       params.append('latitude', clientLocation.lat);
       params.append('longitude', clientLocation.lng);
-      params.append('maxDistance', '50'); // only show providers within 50km
+      params.append('maxDistance', '10'); // only show providers within 10km
     }
     const response = await axios.get(`${baseURL}/api/providers/search?${params.toString()}`);
     return response.data;
