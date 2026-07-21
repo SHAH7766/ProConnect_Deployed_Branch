@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { Badge, Container, Row, Col, Toast, ToastContainer, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiCreditCard, FiMail, FiLock, FiPhone, FiRefreshCw, FiBriefcase, FiUser, FiCheck, FiX, FiMapPin } from 'react-icons/fi';
+import { FiArrowLeft, FiCreditCard, FiMail, FiLock, FiPhone, FiRefreshCw, FiBriefcase, FiUser, FiCheck, FiX, FiMapPin, FiNavigation, FiCheckCircle } from 'react-icons/fi';
 import { API_BASE_URL } from '../config/api';
 
 const getGeneratedSandboxAccountNumber = (providerId = '') => providerId
@@ -31,6 +31,8 @@ const EditProfile = () => {
         confirmPassword: ''
     });
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+    const [locating, setLocating] = useState(false);
+    const [mapsLocation, setMapsLocation] = useState({ latitude: '', longitude: '', mapUrl: '' });
     const [phoneStatus, setPhoneStatus] = useState({ checking: false, available: null, message: '' });
     const [cnicStatus, setCnicStatus] = useState({ checking: false, available: null, message: '' });
     const phoneCheckTimer = useRef(null);
@@ -49,6 +51,14 @@ const EditProfile = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setData(data.profile);
+            const profile = data.profile;
+            if (profile?.location?.latitude && profile?.location?.longitude) {
+                setMapsLocation({
+                    latitude: profile.location.latitude,
+                    longitude: profile.location.longitude,
+                    mapUrl: `https://www.google.com/maps?q=${profile.location.latitude},${profile.location.longitude}`
+                });
+            }
             setContactForm({
                 email: data.profile?.email || '',
                 phone: data.profile?.phone || '',
@@ -172,7 +182,10 @@ const EditProfile = () => {
                 charges: contactForm.charges,
                 location: {
                     city: contactForm.city,
-                    area: contactForm.area
+                    area: contactForm.area,
+                    latitude: mapsLocation.latitude || undefined,
+                    longitude: mapsLocation.longitude || undefined,
+                    mapUrl: mapsLocation.mapUrl || ''
                 }
             };
             const { data } = await axios.put(`${baseURL}/api/profile/contact`, payload, {
@@ -200,6 +213,33 @@ const EditProfile = () => {
         } finally {
             setSavingContact(false);
         }
+    };
+
+    const useCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            setToast({ show: true, message: 'Location is not supported by this browser.', type: 'danger' });
+            return;
+        }
+
+        setLocating(true);
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+                setMapsLocation({
+                    latitude,
+                    longitude,
+                    mapUrl: `https://www.google.com/maps?q=${latitude},${longitude}`
+                });
+                setLocating(false);
+                setToast({ show: true, message: 'Google Maps location added successfully.', type: 'success' });
+            },
+            () => {
+                setLocating(false);
+                setToast({ show: true, message: 'Unable to get your location. Please allow location access.', type: 'danger' });
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
     };
 
     const handlePasswordSubmit = async (e) => {
@@ -394,6 +434,58 @@ const EditProfile = () => {
                                                 </div>
                                             </Col>
                                         </Row>
+
+                                        <div className="mb-4">
+                                            <div className="d-flex align-items-center gap-2 mb-2">
+                                                <FiNavigation className="text-primary fs-5" />
+                                                <h6 className="fw-bold mb-0">Google Maps Location</h6>
+                                            </div>
+                                            {!mapsLocation.mapUrl ? (
+                                                <button
+                                                    type="button"
+                                                    className="auth-btn-primary py-2"
+                                                    onClick={useCurrentLocation}
+                                                    disabled={locating}
+                                                    style={{ background: 'var(--bs-primary)', border: 'none', width: '100%' }}
+                                                >
+                                                    {locating ? (
+                                                        <><span className="auth-spinner" /> Getting Location...</>
+                                                    ) : (
+                                                        <><FiNavigation className="me-2" /> Use My Current Location</>
+                                                    )}
+                                                </button>
+                                            ) : (
+                                                <div className="d-flex align-items-center justify-content-between p-3 rounded" style={{ background: 'var(--glass-bg, rgba(255,255,255,0.05))', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                                    <div className="d-flex align-items-center gap-2">
+                                                        <FiCheckCircle className="text-success" size={20} />
+                                                        <div>
+                                                            <strong className="text-success">Location Added</strong>
+                                                            <div className="small text-muted">
+                                                                {mapsLocation.latitude.toFixed(4)}, {mapsLocation.longitude.toFixed(4)}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="d-flex gap-2">
+                                                        <a
+                                                            href={mapsLocation.mapUrl}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="btn btn-outline-primary btn-sm"
+                                                        >
+                                                            <FiMapPin className="me-1" /> View Map
+                                                        </a>
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-outline-secondary btn-sm"
+                                                            onClick={useCurrentLocation}
+                                                            disabled={locating}
+                                                        >
+                                                            {locating ? <span className="auth-spinner-sm" /> : 'Update'}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
 
                                         <hr className="my-4 text-muted opacity-25" />
                                         <div className="d-flex align-items-center gap-2 mb-3">

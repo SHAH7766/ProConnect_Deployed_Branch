@@ -639,7 +639,7 @@ export const UpdateProfileContact = async (req, res) => {
                 account.charges = chargeValue;
             }
 
-            const { city, area } = req.body.location || {};
+            const { city, area, latitude, longitude } = req.body.location || {};
 
             // Initialize location subdocument if needed
             if (!account.location || typeof account.location !== 'object') {
@@ -647,6 +647,8 @@ export const UpdateProfileContact = async (req, res) => {
             }
             if (city !== undefined) account.location.city = city;
             if (area !== undefined) account.location.area = area;
+            if (latitude !== undefined) account.location.latitude = Number(latitude);
+            if (longitude !== undefined) account.location.longitude = Number(longitude);
             // Explicitly mark location as modified for Mongoose
             account.markModified('location');
         }

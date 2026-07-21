@@ -255,6 +255,16 @@ const Providers = () => {
                             <FiMapPin className="text-danger" />
                             <span>
                               {[provider.location.city, provider.location.area].filter(Boolean).join(', ')}
+                              {provider.location.latitude && provider.location.longitude && (
+                                <a
+                                  href={`https://www.google.com/maps?q=${provider.location.latitude},${provider.location.longitude}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="ms-2 small text-primary text-decoration-none"
+                                >
+                                  <FiMapPin className="me-1" size={12} />View on map
+                                </a>
+                              )}
                             </span>
                           </p>
                         )}
