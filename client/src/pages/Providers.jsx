@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Badge, Alert, Form } from 'react-bootstrap';
 import axios from 'axios';
-import { FiCpu, FiDollarSign, FiSearch, FiStar, FiTrendingUp, FiUserCheck, FiMapPin } from 'react-icons/fi';
+import { FiCpu, FiDollarSign, FiSearch, FiStar, FiTrendingUp, FiUserCheck, FiMapPin, FiNavigation } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import { API_BASE_URL } from '../config/api';
@@ -21,6 +21,8 @@ const Providers = () => {
   const [categoryReason, setCategoryReason] = useState('');
   const [userNeed, setUserNeed] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
+  const [clientLocation, setClientLocation] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(false);
 
   const [heroRef, heroVisible] = useScrollAnimation();
   const [searchRef, searchVisible] = useScrollAnimation();
@@ -32,6 +34,25 @@ const Providers = () => {
 
   useEffect(() => {
     setLoading(false);
+  }, []);
+
+  // Detect client location on mount for distance-based provider filtering
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    setLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setClientLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
+        setLocationLoading(false);
+      },
+      () => {
+        setLocationLoading(false); // silently fail — search still works without location
+      },
+      { enableHighAccuracy: false, timeout: 5000 }
+    );
   }, []);
 
   const handleViewProfile = (providerId) => {
@@ -58,6 +79,11 @@ const Providers = () => {
   const fetchProvidersByCategory = async (category) => {
     const normalizedCategory = normalizeServiceCategory(category);
     const params = new URLSearchParams({ category: normalizedCategory });
+    if (clientLocation) {
+      params.append('latitude', clientLocation.lat);
+      params.append('longitude', clientLocation.lng);
+      params.append('maxDistance', '50'); // only show providers within 50km
+    }
     const response = await axios.get(`${baseURL}/api/providers/search?${params.toString()}`);
     return response.data;
   };
@@ -206,6 +232,23 @@ const Providers = () => {
                     AI is finding the right providers...
                   </Col>
                 )}
+
+                {clientLocation && !aiLoading && !loading && (
+                  <Col xs={12}>
+                    <div className="small text-muted text-center" style={{ opacity: 0.7 }}>
+                      <FiNavigation className="me-1" size={12} />
+                      Using your location to show nearby providers
+                    </div>
+                  </Col>
+                )}
+                {locationLoading && (
+                  <Col xs={12}>
+                    <div className="small text-muted text-center" style={{ opacity: 0.7 }}>
+                      <span className="spinner-border spinner-border-sm me-1" style={{ width: '12px', height: '12px' }}></span>
+                      Detecting your location...
+                    </div>
+                  </Col>
+                )}
               </Row>
             </Form>
           </div>
@@ -272,6 +315,12 @@ const Providers = () => {
                           <FiTrendingUp className="text-primary" />
                           <span>Completion: <strong>{formatCompletionRate(provider.completionRate)}</strong></span>
                         </p>
+                        {provider.distance !== null && provider.distance !== undefined && (
+                          <p className="mb-0 mt-1 d-flex align-items-center gap-2 text-muted small">
+                            <FiNavigation className="text-info" />
+                            <span><strong>{provider.distance.toFixed(1)} km</strong> away</span>
+                          </p>
+                        )}
                         <p className="mb-0 mt-3 small fst-italic" style={{ color: '#ffffff' }}>
                           {provider.reviewSummary || 'No customer reviews yet.'}
                         </p>
