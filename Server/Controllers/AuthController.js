@@ -187,7 +187,13 @@ export const RegisterProvider = async (req, res) => {
         else
             return res.send({ Message: "Failed to register", success: false })
     } catch (error) {
-        return res.send({ Message: "Error occurred", success: false })
+        console.error("Provider registration error:", error)
+        const message = error?.name === 'ValidationError'
+            ? `Validation error: ${Object.values(error.errors || {}).map(e => e.message).join(', ')}`
+            : error?.code === 11000
+                ? 'A user with this email or CNIC already exists'
+                : error?.message || "Error occurred"
+        return res.send({ Message: message, success: false })
     }
 
 }
