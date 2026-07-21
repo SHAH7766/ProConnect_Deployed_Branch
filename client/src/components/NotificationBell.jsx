@@ -68,9 +68,23 @@ const NotificationBell = () => {
   const [toastNotif, setToastNotif] = useState(null);
   const dropdownRef = useRef(null);
   const prevCountRef = useRef(0);
+  const hasFetchedOnce = useRef(false);
   const navigate = useNavigate();
   const isLoggedIn = !!localStorage.getItem('token');
   const toastTimer = useRef(null);
+
+  // Initialize audio on the very first user interaction (required for mobile)
+  useEffect(() => {
+    const handleInteraction = () => {
+      initAudio();
+    };
+    document.addEventListener('click', handleInteraction, { once: true });
+    document.addEventListener('touchstart', handleInteraction, { once: true });
+    return () => {
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('touchstart', handleInteraction);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -87,7 +101,9 @@ const NotificationBell = () => {
           const newCount = data.unreadCount || 0;
           setUnreadCount(newCount);
 
-          if (prevCount > 0 && newCount > prevCount && data.notifications?.length > 0) {
+          // Only beep after the initial fetch has completed at least once.
+          // This ensures the first-ever notification triggers a beep.
+          if (hasFetchedOnce.current && newCount > prevCount && data.notifications?.length > 0) {
             const latest = data.notifications[0];
             if (!latest.isRead) {
               playBeep();
@@ -96,6 +112,7 @@ const NotificationBell = () => {
               toastTimer.current = setTimeout(() => setToastNotif(null), 5000);
             }
           }
+          hasFetchedOnce.current = true;
           prevCountRef.current = newCount;
         }
       } catch { /* ignore */ }
