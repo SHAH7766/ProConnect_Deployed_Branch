@@ -42,11 +42,12 @@ const Complain = () => {
   };
 
   const handleSubmit = async (e) => {
-    let token = localStorage.getItem('token') 
+    let token = localStorage.getItem('token')
     e.preventDefault();
     if (!selectedProviderId) {
       return setToast({ show: true, message: 'Please select the booking/provider for this complaint.', type: 'danger' });
     }
+    if (loading) return;
 
     try {
       setLoading(true);
