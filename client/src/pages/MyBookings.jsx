@@ -845,6 +845,15 @@ const MyBookings = () => {
                                             </div>
                                         </div>
 
+                                        {booking.description && (
+                                            <div className="booking-problem-statement">
+                                                <div className="problem-label">
+                                                    <FiEdit3 className="problem-icon" /> Problem Statement
+                                                </div>
+                                                <p className="problem-text">{booking.description}</p>
+                                            </div>
+                                        )}
+
                                         <div className="booking-card-finance enhanced-finance">
                                             <div className="finance-amount">
                                                 <span className="currency-symbol">PKR</span>

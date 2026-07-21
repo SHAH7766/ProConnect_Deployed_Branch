@@ -1943,6 +1943,39 @@ a {
   border-radius: 12px;
 }
 
+.booking-problem-statement {
+  margin: 12px 0 16px;
+  padding: 14px 16px;
+  background: rgba(246, 248, 251, 0.8);
+  border-radius: 12px;
+  border-left: 3px solid var(--primary-color, #2563eb);
+}
+
+.problem-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary-color, #2563eb);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.problem-icon {
+  font-size: 0.85rem;
+}
+
+.problem-text {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--text-main, #1e293b);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .meta-item {
   display: flex;
   align-items: center;
@@ -3692,6 +3725,19 @@ a {
 
 [data-theme='dark'] .enhanced-meta {
   background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-theme='dark'] .booking-problem-statement {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-left-color: var(--primary-color, #60a5fa) !important;
+}
+
+[data-theme='dark'] .problem-label {
+  color: var(--primary-color, #60a5fa) !important;
+}
+
+[data-theme='dark'] .problem-text {
+  color: var(--text-main, #e2e8f0) !important;
 }
 
 [data-theme='dark'] .negotiation-reason {
