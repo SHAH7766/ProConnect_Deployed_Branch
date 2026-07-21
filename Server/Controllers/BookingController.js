@@ -1447,6 +1447,28 @@ export const AdjustBookingAmount = async (req, res) => {
 
         await booking.save();
 
+        // Notify the other party about the amount adjustment
+        const populatedBooking = await Booking.findById(booking._id).populate('providerId', 'name').populate('customerId', 'name');
+        const customer = populatedBooking?.customerId;
+        const providerName = populatedBooking?.providerId?.name || 'Provider';
+
+        if (isProviderOwner && customer) {
+            createNotification({
+                recipientId: customer._id, recipientRole: 'user',
+                type: 'booking_adjusted', title: 'Rate Updated 💰',
+                message: `${req.user.name || 'Provider'} has adjusted the rate to Rs. ${amount}${reason ? ` — ${reason}` : ''}.`,
+                bookingId: booking._id
+            });
+        }
+        if (isCustomerOwner) {
+            createNotification({
+                recipientId: booking.providerId, recipientRole: 'provider',
+                type: 'booking_adjusted', title: 'Counteroffer Received 💰',
+                message: `${req.user.name || 'Customer'} has made a counteroffer of Rs. ${amount}${reason ? ` — ${reason}` : ''}.`,
+                bookingId: booking._id
+            });
+        }
+
         return res.status(200).send({
             Message: `Amount adjusted from ${previousAmount} to ${amount} successfully`,
             booking,
