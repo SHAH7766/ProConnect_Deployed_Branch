@@ -636,6 +636,10 @@ export const UpdateProfileContact = async (req, res) => {
                 }
                 account.charges = chargeValue;
             }
+
+            const { city, area } = req.body.location || {};
+            if (city !== undefined) account.location.city = city;
+            if (area !== undefined) account.location.area = area;
         }
 
         await account.save();
@@ -652,7 +656,8 @@ export const UpdateProfileContact = async (req, res) => {
                 sandboxBankAccount: account.sandboxBankAccount,
                 category: account.category,
                 experience: account.experience,
-                charges: account.charges
+                charges: account.charges,
+                location: account.location
             },
             success: true
         });

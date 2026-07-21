@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Badge, Alert, Form } from 'react-bootstrap';
 import axios from 'axios';
-import { FiCpu, FiDollarSign, FiSearch, FiStar, FiTrendingUp, FiUserCheck } from 'react-icons/fi';
+import { FiCpu, FiDollarSign, FiSearch, FiStar, FiTrendingUp, FiUserCheck, FiMapPin } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import { API_BASE_URL } from '../config/api';
@@ -250,6 +250,14 @@ const Providers = () => {
                             {provider.travelFee > 0 && <small className="text-muted"> incl. Rs. {provider.travelFee} travel</small>}
                           </span>
                         </p>
+                        {provider.location && (provider.location.city || provider.location.area) && (
+                          <p className="mb-2 d-flex align-items-center gap-2 text-muted small">
+                            <FiMapPin className="text-danger" />
+                            <span>
+                              {[provider.location.city, provider.location.area].filter(Boolean).join(', ')}
+                            </span>
+                          </p>
+                        )}
                         <p className="mb-0 d-flex align-items-center gap-2 text-muted small">
                           <FiTrendingUp className="text-primary" />
                           <span>Completion: <strong>{formatCompletionRate(provider.completionRate)}</strong></span>

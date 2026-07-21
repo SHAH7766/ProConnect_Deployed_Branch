@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { Badge, Container, Row, Col, Toast, ToastContainer, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiCreditCard, FiMail, FiLock, FiPhone, FiRefreshCw, FiBriefcase, FiUser, FiCheck, FiX } from 'react-icons/fi';
+import { FiArrowLeft, FiCreditCard, FiMail, FiLock, FiPhone, FiRefreshCw, FiBriefcase, FiUser, FiCheck, FiX, FiMapPin } from 'react-icons/fi';
 import { API_BASE_URL } from '../config/api';
 
 const getGeneratedSandboxAccountNumber = (providerId = '') => providerId
@@ -21,7 +21,9 @@ const EditProfile = () => {
         sandboxBankAccountNumber: '',
         category: '',
         experience: '',
-        charges: ''
+        charges: '',
+        city: '',
+        area: ''
     });
     const [passwordForm, setPasswordForm] = useState({
         currentPassword: '',
@@ -54,7 +56,9 @@ const EditProfile = () => {
                 sandboxBankAccountNumber: data.profile?.sandboxBankAccount?.accountNumber || getGeneratedSandboxAccountNumber(data.profile?._id),
                 category: data.profile?.category || '',
                 experience: data.profile?.experience || '',
-                charges: data.profile?.charges || ''
+                charges: data.profile?.charges || '',
+                city: data.profile?.location?.city || '',
+                area: data.profile?.location?.area || ''
             });
         } catch (err) {
             console.error("Profile fetch error:", err);
@@ -158,7 +162,20 @@ const EditProfile = () => {
 
         try {
             setSavingContact(true);
-            const { data } = await axios.put(`${baseURL}/api/profile/contact`, contactForm, {
+            const payload = {
+                email: contactForm.email,
+                phone: contactForm.phone,
+                cnic: contactForm.cnic,
+                sandboxBankAccountNumber: contactForm.sandboxBankAccountNumber,
+                category: contactForm.category,
+                experience: contactForm.experience,
+                charges: contactForm.charges,
+                location: {
+                    city: contactForm.city,
+                    area: contactForm.area
+                }
+            };
+            const { data } = await axios.put(`${baseURL}/api/profile/contact`, payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -170,7 +187,8 @@ const EditProfile = () => {
                 sandboxBankAccount: data.profile?.sandboxBankAccount || current?.sandboxBankAccount,
                 category: data.profile?.category || contactForm.category,
                 experience: data.profile?.experience || contactForm.experience,
-                charges: data.profile?.charges || contactForm.charges
+                charges: data.profile?.charges || contactForm.charges,
+                location: data.profile?.location || current?.location
             }));
             setToast({ show: true, message: data.Message, type: 'success' });
         } catch (err) {
@@ -355,6 +373,24 @@ const EditProfile = () => {
                                             <Col md={6}>
                                                 <div className="auth-input-group mb-0">
                                                     <input type="number" min="200" max="500" name="charges" placeholder="CHARGES (RS)" value={contactForm.charges} onChange={handleContactChange} />
+                                                </div>
+                                            </Col>
+                                        </Row>
+
+                                        <hr className="my-3 text-muted opacity-25" />
+                                        <div className="d-flex align-items-center gap-2 mb-3">
+                                            <FiMapPin className="text-danger fs-5" />
+                                            <h5 className="fw-bold mb-0">Service Location</h5>
+                                        </div>
+                                        <Row className="g-3 mb-4">
+                                            <Col md={6}>
+                                                <div className="auth-input-group mb-0">
+                                                    <input name="city" placeholder="CITY" value={contactForm.city} onChange={handleContactChange} required />
+                                                </div>
+                                            </Col>
+                                            <Col md={6}>
+                                                <div className="auth-input-group mb-0">
+                                                    <input name="area" placeholder="AREA / SECTOR" value={contactForm.area} onChange={handleContactChange} required />
                                                 </div>
                                             </Col>
                                         </Row>

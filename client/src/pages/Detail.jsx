@@ -275,6 +275,19 @@ const Detail = () => {
                   </div>
                 </div>
               )}
+              {provider.location && (provider.location.city || provider.location.area) && (
+                <div className="stat-card">
+                  <div className="stat-icon distance-icon">
+                    <FiMapPin />
+                  </div>
+                  <div className="stat-content">
+                    <strong className="stat-value provider-location-text">
+                      {[provider.location.city, provider.location.area].filter(Boolean).join(', ')}
+                    </strong>
+                    <span className="stat-label">Location</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="skills-section">
