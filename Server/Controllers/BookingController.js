@@ -1306,6 +1306,21 @@ export const SendBookingMessage = async (req, res) => {
             audioPublicId
         });
 
+        // Notify the other party about the new message
+        const isCustomerSender = req.user.role === 'user';
+        const recipientId = isCustomerSender ? booking.providerId : booking.customerId;
+        const recipientRole = isCustomerSender ? 'provider' : 'user';
+        const senderLabel = req.user.name || (isCustomerSender ? 'Customer' : 'Provider');
+
+        if (recipientId) {
+            createNotification({
+                recipientId, recipientRole,
+                type: 'new_message', title: 'New Message 💬',
+                message: `${senderLabel} sent you a message: "${(message.trim() || 'Voice message').slice(0, 80)}"`,
+                bookingId: booking._id
+            });
+        }
+
         return res.status(201).send({ Message: "Message sent", chatMessage: createdMessage, success: true });
     } catch (error) {
         console.log(error);
