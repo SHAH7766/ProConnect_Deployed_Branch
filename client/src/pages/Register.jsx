@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Container, Form, Button, Toast, ToastContainer, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { FiBriefcase, FiUser, FiMail, FiPhone, FiLock, FiEye, FiEyeOff, FiCheckCircle, FiCheck, FiX, FiTool } from 'react-icons/fi';
+import { FiBriefcase, FiUser, FiMail, FiPhone, FiLock, FiEye, FiEyeOff, FiCheckCircle, FiCheck, FiX, FiTool, FiMapPin } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../config/api';
 
@@ -26,7 +26,9 @@ const Register = () => {
     experience: '',
     category: '',
     charges: '',
-    bankAccountNumber: ''
+    bankAccountNumber: '',
+    city: '',
+    area: ''
   });
   const [isProvider, setIsProvider] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -195,7 +197,7 @@ const Register = () => {
     const endpoint = isProvider ? `${baseURL}/api/regprovider` : `${baseURL}/api/reguser`;
 
     const payload = isProvider
-      ? { ...formData, password: formData.password } // omits confirmPassword in a real app, but backend ignores extras
+      ? { ...formData, password: formData.password, location: { city: formData.city, area: formData.area } }
       : {
         username: formData.username,
         email: formData.email,
@@ -306,6 +308,62 @@ const Register = () => {
               >
                 {emailStatus.message}
               </motion.small>
+            )}
+
+            {isProvider && (
+              <>
+                <motion.div variants={formItem} style={{ width: '100%', marginTop: '8px', marginBottom: '8px' }}>
+                  <hr className="text-muted opacity-25" style={{ margin: '4px 0' }} />
+                </motion.div>
+
+                <motion.div variants={formItem} className="auth-input-group mb-3">
+                  <FiBriefcase className="auth-input-icon" />
+                  <select name="category" value={formData.category} onChange={handleChange} required style={{ width: '100%', padding: '12px 16px 12px 44px', background: 'var(--input-bg)', border: '1px solid var(--input-border)', borderRadius: '12px', color: 'var(--text-primary)', fontSize: '0.9rem', outline: 'none' }}>
+                    <option value="">SELECT CATEGORY</option>
+                    <option value="Plumber">Plumber</option>
+                    <option value="Electronics">Electronics</option>
+                  </select>
+                </motion.div>
+
+                <Row className="g-3 mb-3">
+                  <Col md={6}>
+                    <motion.div variants={formItem} className="auth-input-group mb-0">
+                      <input name="experience" placeholder="EXPERIENCE (YRS)" value={formData.experience} onChange={handleChange} />
+                    </motion.div>
+                  </Col>
+                  <Col md={6}>
+                    <motion.div variants={formItem} className="auth-input-group mb-0">
+                      <input type="number" min="200" max="500" name="charges" placeholder="CHARGES (RS)" value={formData.charges} onChange={handleChange} required />
+                    </motion.div>
+                  </Col>
+                </Row>
+
+                <motion.div variants={formItem} style={{ width: '100%', marginTop: '8px', marginBottom: '8px' }}>
+                  <hr className="text-muted opacity-25" style={{ margin: '4px 0' }} />
+                </motion.div>
+
+                <motion.div variants={formItem} className="d-flex align-items-center gap-2 mb-2" style={{ paddingLeft: '4px' }}>
+                  <FiMapPin className="text-danger" />
+                  <small className="fw-semibold text-muted">SERVICE LOCATION</small>
+                </motion.div>
+
+                <Row className="g-3 mb-3">
+                  <Col md={6}>
+                    <motion.div variants={formItem} className="auth-input-group mb-0">
+                      <input name="city" placeholder="CITY" value={formData.city} onChange={handleChange} required />
+                    </motion.div>
+                  </Col>
+                  <Col md={6}>
+                    <motion.div variants={formItem} className="auth-input-group mb-0">
+                      <input name="area" placeholder="AREA / SECTOR" value={formData.area} onChange={handleChange} required />
+                    </motion.div>
+                  </Col>
+                </Row>
+
+                <motion.div variants={formItem} style={{ width: '100%', marginTop: '8px', marginBottom: '8px' }}>
+                  <hr className="text-muted opacity-25" style={{ margin: '4px 0' }} />
+                </motion.div>
+              </>
             )}
 
             {!isProvider && (

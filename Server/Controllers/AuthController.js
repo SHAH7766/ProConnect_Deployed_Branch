@@ -116,6 +116,7 @@ export const RegisterProvider = async (req, res) => {
     let role = ""
     try {
         const { username, name, email, password, experience, category, charges, cnic = '', bankAccountNumber = '' } = req.body
+        const { city = '', area = '' } = req.body.location || {}
         const displayName = name || username
         const sanitizedUsername = username?.toString().trim().toLowerCase()
         if (!sanitizedUsername || sanitizedUsername.length < 3) {
@@ -165,6 +166,7 @@ export const RegisterProvider = async (req, res) => {
             charges: providerCharges || 200,
             completionRate: 70,
             isActive: false,
+            location: { city, area },
             sandboxBankAccount: {
                 accountNumber: trimmedBankAccountNumber,
                 accountTitle: displayName,
