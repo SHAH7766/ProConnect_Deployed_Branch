@@ -75,6 +75,7 @@ export const RegisterUser = async (req, res) => {
             return res.send({ Message: "Failed to register", success: false })
     } catch (error) {
         console.log(error)
+        return res.status(500).send({ Message: "Registration failed due to an internal error", success: false })
     }
 }
 
