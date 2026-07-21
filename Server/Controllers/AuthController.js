@@ -157,7 +157,7 @@ export const RegisterProvider = async (req, res) => {
             username: sanitizedUsername,
             name: displayName,
             email,
-            cnic: cnic?.trim() ? sanitizedCnic : '',
+            ...(cnic?.trim() ? { cnic: sanitizedCnic } : {}),
             password: hashPassword,
             role: 'provider',
             experience: experience || '',
