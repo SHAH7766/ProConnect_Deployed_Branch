@@ -30,7 +30,9 @@ const EditProfile = () => {
     });
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
     const [phoneStatus, setPhoneStatus] = useState({ checking: false, available: null, message: '' });
+    const [cnicStatus, setCnicStatus] = useState({ checking: false, available: null, message: '' });
     const phoneCheckTimer = useRef(null);
+    const cnicCheckTimer = useRef(null);
     const token = localStorage.getItem("token");
     const navigate = useNavigate();
     const baseURL = API_BASE_URL;
@@ -77,6 +79,16 @@ const EditProfile = () => {
                 phoneCheckTimer.current = setTimeout(() => checkPhone(e.target.value), 500);
             }
         }
+
+        if (e.target.name === 'cnic') {
+            setCnicStatus({ checking: false, available: null, message: '' });
+            if (cnicCheckTimer.current) clearTimeout(cnicCheckTimer.current);
+            const digits = e.target.value.replace(/[^0-9]/g, '');
+            if (digits.length >= 13) {
+                setCnicStatus(prev => ({ ...prev, checking: true }));
+                cnicCheckTimer.current = setTimeout(() => checkCnic(e.target.value), 500);
+            }
+        }
     };
 
     const checkPhone = useCallback(async (phoneValue) => {
@@ -97,6 +109,35 @@ const EditProfile = () => {
             setPhoneStatus({ checking: false, available: null, message: '' });
         }
     }, [baseURL]);
+
+    const checkCnic = useCallback(async (cnicValue) => {
+        const digits = cnicValue.replace(/[^0-9]/g, '');
+        if (digits.length < 13) {
+            setCnicStatus({ checking: false, available: null, message: '' });
+            return;
+        }
+        if (digits.length !== 13) {
+            setCnicStatus({ checking: false, available: false, message: 'CNIC must be exactly 13 digits' });
+            return;
+        }
+        setCnicStatus(prev => ({ ...prev, checking: true }));
+        const myId = data?._id;
+        const myRole = data?.role;
+        try {
+            const res = await axios.post(`${baseURL}/api/check-cnic`, {
+                cnic: cnicValue,
+                excludeId: myId || undefined,
+                role: myRole || undefined
+            });
+            setCnicStatus({
+                checking: false,
+                available: res.data.available,
+                message: res.data.available ? '' : 'CNIC already exists'
+            });
+        } catch {
+            setCnicStatus({ checking: false, available: null, message: '' });
+        }
+    }, [baseURL, data]);
 
     const handleContactSubmit = async (e) => {
         e.preventDefault();
@@ -257,7 +298,7 @@ const EditProfile = () => {
                                         {phoneStatus.message}
                                     </small>
                                 )}
-                                <div className="auth-input-group mb-4">
+                                <div className="auth-input-group mb-1">
                                     <FiUser className="auth-input-icon" />
                                     <input
                                         name="cnic"
@@ -267,7 +308,21 @@ const EditProfile = () => {
                                         value={contactForm.cnic}
                                         onChange={handleContactChange}
                                     />
+                                    {cnicStatus.checking && (
+                                        <span className="auth-input-suffix"><span className="auth-spinner-sm" /></span>
+                                    )}
+                                    {!cnicStatus.checking && cnicStatus.available === true && contactForm.cnic.replace(/[^0-9]/g, '').length >= 13 && (
+                                        <span className="auth-input-suffix text-success"><FiCheck size={18} /></span>
+                                    )}
+                                    {!cnicStatus.checking && cnicStatus.available === false && (
+                                        <span className="auth-input-suffix text-danger"><FiX size={18} /></span>
+                                    )}
                                 </div>
+                                {cnicStatus.message && (
+                                    <small className="d-block mt-n1 mb-3 small text-danger">
+                                        {cnicStatus.message}
+                                    </small>
+                                )}
 
                                 {data?.role === 'provider' && (
                                     <>

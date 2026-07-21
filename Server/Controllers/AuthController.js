@@ -424,7 +424,7 @@ export const CheckPhone = async (req, res) => {
 
 export const CheckCnic = async (req, res) => {
     try {
-        const { cnic } = req.body
+        const { cnic, excludeId, role } = req.body
         const sanitized = cnic ? String(cnic).replace(/[^0-9]/g, '') : ''
         if (!sanitized) {
             return res.send({ available: false, message: 'CNIC is required' })
@@ -432,8 +432,14 @@ export const CheckCnic = async (req, res) => {
         if (sanitized.length !== 13) {
             return res.send({ available: false, message: 'CNIC must be exactly 13 digits' })
         }
-        const userConflict = await user.findOne({ cnic: sanitized }).select('_id')
-        const providerConflict = await provider.findOne({ cnic: sanitized }).select('_id')
+        const userQuery = { cnic: sanitized }
+        const providerQuery = { cnic: sanitized }
+        if (excludeId) {
+            if (role !== 'provider') userQuery._id = { $ne: excludeId }
+            if (role === 'provider') providerQuery._id = { $ne: excludeId }
+        }
+        const userConflict = await user.findOne(userQuery).select('_id')
+        const providerConflict = await provider.findOne(providerQuery).select('_id')
         const taken = !!(userConflict || providerConflict)
         return res.send({ available: !taken, message: taken ? 'CNIC already exists' : 'CNIC available' })
     } catch (error) {
