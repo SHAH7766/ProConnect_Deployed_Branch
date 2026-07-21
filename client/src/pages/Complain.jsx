@@ -15,6 +15,7 @@ const Complain = () => {
   const [selectedProviderId, setSelectedProviderId] = useState(location.state?.providerId || '');
   const [selectedProviderName, setSelectedProviderName] = useState(location.state?.providerName || '');
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [loading, setLoading] = useState(false);
   const baseURL = API_BASE_URL;
 
   useEffect(() => {
@@ -48,6 +49,7 @@ const Complain = () => {
     }
 
     try {
+      setLoading(true);
       let result = await axios.post(`${baseURL}/api/customerservice`, {
         message,
         TypeOfComplaint,
@@ -65,6 +67,8 @@ const Complain = () => {
       console.log(error);
       setToast({ show: true, message: 'An error occurred while submitting the complaint.', type: 'danger' });
       // Handle error (e.g., show an error message)
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -103,7 +107,7 @@ const Complain = () => {
             <label htmlFor="complaintMessage" className="form-label">Complaint Details</label>
             <textarea onChange={(e) => setMessage(e.target.value)} value={message} className="form-control" id="complaintMessage" rows="5" placeholder="Describe your issue in detail..." required></textarea>
           </div>
-          <button type="submit" className="btn btn-danger">Submit Complaint</button>
+          <button type="submit" className="btn btn-danger" disabled={loading}>{loading ? <><span className="auth-spinner" /> Submitting...</> : 'Submit Complaint'}</button>
         </form>
         <ToastContainer position="bottom-end" className="p-3" style={{ position: 'fixed', zIndex: 1050 }}>
           <Toast
