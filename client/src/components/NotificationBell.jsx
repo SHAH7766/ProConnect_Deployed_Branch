@@ -12,22 +12,25 @@ const initAudio = () => {
   if (audioInitialized) return;
   try {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    // Create silent buffer to unlock audio on mobile
-    const silent = audioCtx.createBufferSource();
-    silent.start(0);
+    // Prime the audio graph — MUST connect to destination to unlock audio on mobile
+    const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.1, audioCtx.sampleRate);
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioCtx.destination);
+    source.start();
     audioInitialized = true;
   } catch {
     // Audio not supported
   }
 };
 
-const playBeep = () => {
+const playBeep = async () => {
   try {
     if (!audioCtx || audioCtx.state === 'closed') {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
     if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
+      await audioCtx.resume();
     }
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
@@ -41,7 +44,7 @@ const playBeep = () => {
     osc.start(now);
     osc.stop(now + 0.4);
   } catch {
-    // Audio not supported
+    // Audio context unavailable — rely on vibration fallback
   }
   // Vibrate on mobile as fallback
   try { navigator.vibrate?.([100, 50, 100]); } catch {}
@@ -85,6 +88,17 @@ const NotificationBell = () => {
       document.removeEventListener('touchstart', handleInteraction);
     };
   }, []);
+
+  // Keep AudioContext alive — mobile browsers suspend it ~30s after last sound
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    const id = setInterval(() => {
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }, 20000);
+    return () => clearInterval(id);
+  }, [isLoggedIn]);
 
   useEffect(() => {
     if (!isLoggedIn) return;
